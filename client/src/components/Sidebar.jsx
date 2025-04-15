@@ -56,7 +56,7 @@ const Sidebar = () => {
                 href={item.path}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
                   isActive(item.path)
-                    ? "bg-primary/20 text-primary-foreground font-medium"
+                    ? "bg-primary text-primary-foreground font-medium"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
@@ -73,7 +73,7 @@ const Sidebar = () => {
           href="/settings"
           className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
             isActive('/settings')
-              ? "bg-primary/20 text-primary-foreground font-medium"
+              ? "bg-primary text-primary-foreground font-medium"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           }`}
         >

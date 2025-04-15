@@ -55,35 +55,35 @@ function App() {
               href="/vault" 
               className={`flex flex-col items-center ${location === '/vault' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className="fas fa-vault mb-1 text-lg"></i>
+              <i className={`fas fa-vault mb-1 text-lg ${location === '/vault' ? 'text-primary' : ''}`}></i>
               <span>Vault</span>
             </a>
             <a 
               href="/dark-web-scan" 
               className={`flex flex-col items-center ${location === '/dark-web-scan' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className="fas fa-shield-alt mb-1 text-lg"></i>
+              <i className={`fas fa-shield-alt mb-1 text-lg ${location === '/dark-web-scan' ? 'text-primary' : ''}`}></i>
               <span>Scan</span>
             </a>
             <a 
               href="/password-generator" 
               className={`flex flex-col items-center ${location === '/password-generator' || location === '/' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className="fas fa-key mb-1 text-lg"></i>
+              <i className={`fas fa-key mb-1 text-lg ${location === '/password-generator' || location === '/' ? 'text-primary' : ''}`}></i>
               <span>Generator</span>
             </a>
             <a 
               href="/secured-notes" 
               className={`flex flex-col items-center ${location === '/secured-notes' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className="fas fa-sticky-note mb-1 text-lg"></i>
+              <i className={`fas fa-sticky-note mb-1 text-lg ${location === '/secured-notes' ? 'text-primary' : ''}`}></i>
               <span>Notes</span>
             </a>
             <a 
               href="/settings" 
               className={`flex flex-col items-center ${location === '/settings' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className="fas fa-cog mb-1 text-lg"></i>
+              <i className={`fas fa-cog mb-1 text-lg ${location === '/settings' ? 'text-primary' : ''}`}></i>
               <span>Settings</span>
             </a>
           </div>
