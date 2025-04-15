@@ -33,20 +33,50 @@ import {
   deleteNote,
   decryptNote,
 } from "@/slices/notesSlice";
+import { LOCK_INTERVALS } from "@/slices/userSlice";
+import { useLockInterval } from "@/hooks/use-lock-interval";
+import LockScreen from "@/components/LockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SecuredNotes = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
-  const { items: notes, isLocked, masterPasswordHash } = useSelector((state) => state.notes);
+  const { items: notes, isLocked: notesLocked, masterPasswordHash } = useSelector((state) => state.notes);
+  const { lockInterval } = useSelector(state => state.user);
+  
+  // Use our custom lock interval hook
+  const { isLocked: intervalLocked, unlock: unlockInterval } = useLockInterval(false);
   
   const [masterPassword, setMasterPasswordValue] = useState("");
   const [addNoteOpen, setAddNoteOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
   
-  const handleUnlock = () => {
-    if (!masterPassword) {
+  // Combine the internal notes lock state with our interval lock
+  const isLocked = notesLocked || intervalLocked;
+  
+  // Handle different lock messages based on the lock interval setting
+  const getLockReason = () => {
+    if (notesLocked) {
+      return !masterPasswordHash
+        ? "Create a master password to secure your notes"
+        : "Enter your master password to access your secured notes";
+    }
+    
+    switch(lockInterval) {
+      case LOCK_INTERVALS.SESSION_END:
+        return "Your session ended. Please enter your master password again.";
+      case LOCK_INTERVALS.EVERY_USE:
+        return "Password is required each time you access your notes.";
+      case LOCK_INTERVALS.TIMEOUT_15:
+        return "You've been inactive for 15 minutes. Please enter your password.";
+      default:
+        return "Enter your master password to continue.";
+    }
+  };
+  
+  const handleUnlock = (password = masterPassword) => {
+    if (!password) {
       toast({
         title: "Error",
         description: "Please enter your master password",
@@ -57,16 +87,18 @@ const SecuredNotes = () => {
     
     if (!masterPasswordHash) {
       // First time setup - set master password
-      dispatch(setMasterPassword(masterPassword));
+      dispatch(setMasterPassword(password));
       toast({
         title: "Vault Unlocked",
         description: "Your master password has been set",
       });
+      unlockInterval(); // Also unlock the interval lock
     } else {
       // Unlock with existing password
-      const result = dispatch(unlockNotes(masterPassword));
+      const result = dispatch(unlockNotes(password));
       
       if (result.payload?.isLocked === false) {
+        unlockInterval(); // Also unlock the interval lock
         toast({
           title: "Vault Unlocked",
           description: "Your notes are now accessible",
@@ -159,44 +191,16 @@ const SecuredNotes = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {isLocked ? (
-        // Lock Screen
-        <Card className="max-w-md mx-auto mt-16">
-          <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: [0.9, 1.1, 1] }}
-                transition={{ duration: 0.5 }}
-              >
-                <i className="fas fa-lock text-4xl text-primary mb-4"></i>
-              </motion.div>
-              <h3 className="text-xl font-semibold">Secured Notes Vault</h3>
-              <p className="text-muted-foreground text-sm mt-2">
-                {!masterPasswordHash
-                  ? "Create a master password to secure your notes"
-                  : "Enter your master password to access your secured notes"}
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Input
-                  type="password"
-                  id="masterPassword"
-                  placeholder="Master Password"
-                  value={masterPassword}
-                  onChange={(e) => setMasterPasswordValue(e.target.value)}
-                />
-              </div>
-              <Button className="w-full" onClick={handleUnlock}>
-                {!masterPasswordHash ? "Create Vault" : "Unlock Vault"}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        // Notes Content
+      {/* New lock screen component - shown when either notesLocked or intervalLocked is true */}
+      {isLocked && (
+        <LockScreen 
+          onUnlock={handleUnlock}
+          reason={getLockReason()}
+        />
+      )}
+      
+      {/* Notes Content - only shown when not locked */}
+      {!isLocked && (
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Secured Notes</h2>

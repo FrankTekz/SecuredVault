@@ -11,13 +11,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useSelector, useDispatch } from "react-redux";
 import { 
   toggleDarkMode, 
   toggleAutoLock, 
   toggleClearClipboard, 
-  clearSettings 
+  setLockInterval,
+  clearSettings,
+  LOCK_INTERVALS
 } from "@/slices/userSlice";
 import { clearCredentials } from "@/slices/credentialsSlice";
 import { clearNotes } from "@/slices/notesSlice";
@@ -44,7 +53,7 @@ const SettingsRow = ({ title, description, actionElement }) => (
 const Settings = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
-  const { darkMode, autoLock, clearClipboard } = useSelector((state) => state.user);
+  const { darkMode, autoLock, clearClipboard, lockInterval } = useSelector((state) => state.user);
   
   const [clearDataDialogOpen, setClearDataDialogOpen] = useState(false);
   
@@ -80,6 +89,30 @@ const Settings = () => {
     toast({
       title: "Data Cleared",
       description: "All your data has been cleared from the application.",
+    });
+  };
+  
+  const handleLockIntervalChange = (value) => {
+    dispatch(setLockInterval(value));
+    
+    let message = "";
+    switch(value) {
+      case LOCK_INTERVALS.SESSION_END:
+        message = "Password will be required when session ends";
+        break;
+      case LOCK_INTERVALS.EVERY_USE:
+        message = "Password will be required for every use";
+        break;
+      case LOCK_INTERVALS.TIMEOUT_15:
+        message = "Password will be required after 15 minutes of inactivity";
+        break;
+      default:
+        message = "Lock interval updated";
+    }
+    
+    toast({
+      title: "Setting Updated",
+      description: message,
     });
   };
   
@@ -121,6 +154,26 @@ const Settings = () => {
             <Button variant="secondary" onClick={handleChangeMasterPassword}>
               Change
             </Button>
+          }
+        />
+        
+        <SettingsRow
+          title="Lock Interval"
+          description="Choose when to require password re-entry"
+          actionElement={
+            <Select 
+              value={lockInterval} 
+              onValueChange={handleLockIntervalChange}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select interval" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={LOCK_INTERVALS.SESSION_END}>End of Session</SelectItem>
+                <SelectItem value={LOCK_INTERVALS.EVERY_USE}>Every Use</SelectItem>
+                <SelectItem value={LOCK_INTERVALS.TIMEOUT_15}>After 15 Minutes</SelectItem>
+              </SelectContent>
+            </Select>
           }
         />
         
