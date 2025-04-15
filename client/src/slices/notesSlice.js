@@ -7,13 +7,13 @@ const getInitialState = () => {
     const parsedState = savedNotes ? JSON.parse(savedNotes) : { 
       items: [],
       masterPasswordHash: '',
-      isLocked: true
+      isLocked: false  // Default to unlocked for new users with no password
     };
     
-    // Always ensure we lock if no master password is set
-    // OR force lock if there's a master password (lock behavior is handled by interval)
-    if (!parsedState.masterPasswordHash) {
-      parsedState.isLocked = true;
+    // Only lock if a master password exists
+    // Otherwise, keep it unlocked for first-time users
+    if (!parsedState.masterPasswordHash || parsedState.masterPasswordHash === '') {
+      parsedState.isLocked = false; // No password, no lock
     }
     
     return parsedState;
@@ -22,7 +22,7 @@ const getInitialState = () => {
     return { 
       items: [],
       masterPasswordHash: '',
-      isLocked: true
+      isLocked: false  // Default to unlocked for new users
     };
   }
 };
@@ -65,13 +65,16 @@ const notesSlice = createSlice({
     },
     
     lockNotes: (state) => {
-      state.isLocked = true;
-      
-      // Update localStorage
-      localStorage.setItem('encryptedNotes', JSON.stringify({
-        ...state,
-        isLocked: true
-      }));
+      // Only lock if a master password exists
+      if (state.masterPasswordHash && state.masterPasswordHash.length > 0) {
+        state.isLocked = true;
+        
+        // Update localStorage
+        localStorage.setItem('encryptedNotes', JSON.stringify({
+          ...state,
+          isLocked: true
+        }));
+      }
     },
     
     addNote: (state, action) => {
