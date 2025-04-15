@@ -109,18 +109,21 @@ const SecuredNotes = () => {
       } else {
         console.log("Unlocking with existing password");
         // Unlock with existing password
-        const result = dispatch(unlockNotes(password));
-        console.log("Unlock result:", result);
+        const action = dispatch(unlockNotes(password));
+        console.log("Unlock action:", action);
         
-        setMasterPasswordValue(password); // Save the password for encrypting notes
+        // Store the password for encrypting/decrypting notes
+        setMasterPasswordValue(password);
         
-        if (result.payload?.isLocked === false) {
+        if (action.payload?.isLocked === false) {
+          console.log("Notes unlocked successfully via the action payload");
           unlockInterval(); // Also unlock the interval lock
           toast({
             title: "Vault Unlocked",
             description: "Your notes are now accessible",
           });
         } else {
+          console.log("Password verification failed");
           toast({
             title: "Error",
             description: "Incorrect master password",

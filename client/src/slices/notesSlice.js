@@ -39,21 +39,29 @@ const notesSlice = createSlice({
     
     unlockNotes: (state, action) => {
       const passwordHash = CryptoJS.SHA256(action.payload).toString();
+      console.log("Comparing password hashes:", { 
+        inputHash: passwordHash.substring(0, 10) + "...", 
+        storedHash: state.masterPasswordHash.substring(0, 10) + "..." 
+      });
       
       if (passwordHash === state.masterPasswordHash) {
         state.isLocked = false;
         
         // Update localStorage
         localStorage.setItem('encryptedNotes', JSON.stringify({
-          ...state,
+          items: state.items,
+          masterPasswordHash: state.masterPasswordHash,
           isLocked: false
         }));
         
-        return state;
+        console.log("Notes unlocked successfully");
+        return { isLocked: false };
+      } else {
+        console.log("Password hash mismatch - not unlocking");
       }
       
       // Return unchanged state if password is incorrect
-      return state;
+      return { isLocked: true };
     },
     
     lockNotes: (state) => {
