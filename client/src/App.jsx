@@ -11,6 +11,8 @@ import NotFound from "@/pages/not-found";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
+// Import ResetLocalStorage component - TEMPORARY
+import ResetLocalStorage from "./resetLocalStorage";
 
 function App() {
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -30,6 +32,8 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      {/* TEMPORARY RESET COMPONENT - REMOVE AFTER FIXING THE ISSUE */}
+      <ResetLocalStorage />
       {!isMobile && <Sidebar />}
       
       <main className="flex-1 overflow-y-auto">

@@ -73,8 +73,10 @@ const SecuredNotes = () => {
     setShowLockScreen(true);
   }, [hasPasswordSet]);
   
-  // Determine if we should lock based on the local state
-  const isLocked = showLockScreen; // Initially true, changed after password creation/entry
+  // Determine if we should lock based on the local state and hasPasswordSet flag
+  // If no password is set, we should show a different lock screen (for password creation)
+  // Otherwise, show the regular lock screen for password entry
+  const isLocked = showLockScreen;
   
   // Handle different lock messages based on the lock interval setting
   const getLockReason = () => {

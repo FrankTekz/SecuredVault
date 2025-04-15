@@ -3,20 +3,37 @@ import CryptoJS from 'crypto-js';
 
 const getInitialState = () => {
   try {
+    console.log("Initializing notes state from localStorage");
     const savedNotes = localStorage.getItem('encryptedNotes');
-    const parsedState = savedNotes ? JSON.parse(savedNotes) : { 
+    
+    // Default state for new users or after clearing localStorage
+    const defaultState = { 
       items: [],
       masterPasswordHash: '',
       isLocked: false,  // Default to unlocked for new users with no password
       hasPasswordSet: false // Explicitly track if a password has been set
     };
     
-    // Set the hasPasswordSet flag based on masterPasswordHash
+    // If nothing in localStorage, return default state
+    if (!savedNotes) {
+      console.log("No saved notes found in localStorage, using default state");
+      return defaultState;
+    }
+    
+    // Parse saved state
+    const parsedState = JSON.parse(savedNotes);
+    console.log("Loaded state from localStorage:", { 
+      hasPasswordInState: 'hasPasswordSet' in parsedState,
+      masterPasswordExists: !!(parsedState.masterPasswordHash && parsedState.masterPasswordHash.length > 0)
+    });
+    
+    // Always recalculate hasPasswordSet based on masterPasswordHash existence
+    // This ensures the flag is always in sync with the actual password state
     parsedState.hasPasswordSet = !!(parsedState.masterPasswordHash && parsedState.masterPasswordHash.length > 0);
     
-    // Only lock if a master password exists
-    // Otherwise, keep it unlocked for first-time users
+    // Always ensure unlocked state when no password exists
     if (!parsedState.hasPasswordSet) {
+      console.log("No master password set, ensuring unlocked state");
       parsedState.isLocked = false; // No password, no lock
     }
     
