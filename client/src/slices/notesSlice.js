@@ -7,12 +7,16 @@ const getInitialState = () => {
     const parsedState = savedNotes ? JSON.parse(savedNotes) : { 
       items: [],
       masterPasswordHash: '',
-      isLocked: false  // Default to unlocked for new users with no password
+      isLocked: false,  // Default to unlocked for new users with no password
+      hasPasswordSet: false // Explicitly track if a password has been set
     };
+    
+    // Set the hasPasswordSet flag based on masterPasswordHash
+    parsedState.hasPasswordSet = !!(parsedState.masterPasswordHash && parsedState.masterPasswordHash.length > 0);
     
     // Only lock if a master password exists
     // Otherwise, keep it unlocked for first-time users
-    if (!parsedState.masterPasswordHash || parsedState.masterPasswordHash === '') {
+    if (!parsedState.hasPasswordSet) {
       parsedState.isLocked = false; // No password, no lock
     }
     
@@ -22,7 +26,8 @@ const getInitialState = () => {
     return { 
       items: [],
       masterPasswordHash: '',
-      isLocked: false  // Default to unlocked for new users
+      isLocked: false,  // Default to unlocked for new users
+      hasPasswordSet: false // Explicitly track if a password has been set
     };
   }
 };
@@ -35,12 +40,14 @@ const notesSlice = createSlice({
       // Store a hash of the master password
       const passwordHash = CryptoJS.SHA256(action.payload).toString();
       state.masterPasswordHash = passwordHash;
+      state.hasPasswordSet = true; // Mark that a password has been set
       state.isLocked = false;
       
       // Save to localStorage (just the hash, not the actual password)
       localStorage.setItem('encryptedNotes', JSON.stringify({
         items: state.items,
         masterPasswordHash: passwordHash,
+        hasPasswordSet: true,
         isLocked: false
       }));
     },
@@ -66,7 +73,7 @@ const notesSlice = createSlice({
     
     lockNotes: (state) => {
       // Only lock if a master password exists
-      if (state.masterPasswordHash && state.masterPasswordHash.length > 0) {
+      if (state.hasPasswordSet) {
         state.isLocked = true;
         
         // Update localStorage

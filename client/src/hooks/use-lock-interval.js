@@ -9,8 +9,8 @@ export function useLockInterval(initialLockState = true) {
   const { lockInterval, autoLock, lockTimeout } = useSelector((state) => state.user);
   const { masterPasswordHash } = useSelector((state) => state.notes);
   
-  // If no master password is set, we don't need locking features
-  const hasPasswordSet = masterPasswordHash && masterPasswordHash.length > 0;
+  // Get hasPasswordSet directly from the Redux store
+  const hasPasswordSet = useSelector(state => state.notes.hasPasswordSet);
   
   // Track user activity for both note-specific timeout and app-wide auto-lock
   useEffect(() => {

@@ -55,8 +55,8 @@ const SecuredNotes = () => {
   const [noteToDelete, setNoteToDelete] = useState(null);
   const [currentNote, setCurrentNote] = useState({ id: null, title: "", content: "" });
   
-  // Check if a master password has been set
-  const hasPasswordSet = masterPasswordHash && masterPasswordHash.length > 0;
+  // Get the hasPasswordSet state from Redux
+  const hasPasswordSet = useSelector(state => state.notes.hasPasswordSet);
   
   // Combine the internal notes lock state with our interval lock
   // BUT if no password is set, we should never be locked
