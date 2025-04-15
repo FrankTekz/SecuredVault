@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { LOCK_INTERVALS } from "@/slices/userSlice";
+import { LOCK_INTERVALS, AUTO_LOCK_TIMEOUTS } from "@/slices/userSlice";
 
-// This hook helps manage locking based on the user's selected interval
+// This hook helps manage locking based on the user's selected interval and app-wide auto-lock
 export function useLockInterval(initialLockState = true) {
   const [isLocked, setIsLocked] = useState(initialLockState);
   const [lastInteraction, setLastInteraction] = useState(Date.now());
-  const { lockInterval } = useSelector((state) => state.user);
+  const { lockInterval, autoLock, lockTimeout } = useSelector((state) => state.user);
   
-  // Track user activity
+  // Track user activity for both note-specific timeout and app-wide auto-lock
   useEffect(() => {
-    // Only track activity if we're using the timeout option
-    if (lockInterval !== LOCK_INTERVALS.TIMEOUT_15) return;
+    // Check if we need to track activity for any timeout-based locking
+    const needsActivityTracking = 
+      lockInterval === LOCK_INTERVALS.TIMEOUT_15 || 
+      (autoLock && lockTimeout > 0);
+    
+    if (!needsActivityTracking) return;
     
     const updateLastInteraction = () => {
       setLastInteraction(Date.now());
@@ -28,22 +32,38 @@ export function useLockInterval(initialLockState = true) {
         window.removeEventListener(event, updateLastInteraction);
       });
     };
-  }, [lockInterval]);
+  }, [lockInterval, autoLock, lockTimeout]);
   
   // Check for timeout-based locking
   useEffect(() => {
-    if (lockInterval !== LOCK_INTERVALS.TIMEOUT_15) return;
-    
     // If already locked, no need to check timeout
     if (isLocked) return;
+    
+    // Check if we need any timeout-based locking
+    const shouldCheckNotesTimeout = lockInterval === LOCK_INTERVALS.TIMEOUT_15;
+    const shouldCheckAutoLock = autoLock && lockTimeout > 0;
+    
+    if (!shouldCheckNotesTimeout && !shouldCheckAutoLock) return;
     
     const checkTimeout = () => {
       const now = Date.now();
       const idleTime = now - lastInteraction;
-      const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
       
-      if (idleTime >= fifteenMinutes) {
-        setIsLocked(true);
+      // Check notes-specific timeout (15 min)
+      if (shouldCheckNotesTimeout) {
+        const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
+        if (idleTime >= fifteenMinutes) {
+          setIsLocked(true);
+          return; // Lock activated, no need to check app-wide auto-lock
+        }
+      }
+      
+      // Check app-wide auto-lock timeout
+      if (shouldCheckAutoLock) {
+        const timeoutMilliseconds = lockTimeout * 60 * 1000; // Convert minutes to milliseconds
+        if (idleTime >= timeoutMilliseconds) {
+          setIsLocked(true);
+        }
       }
     };
     
@@ -53,7 +73,7 @@ export function useLockInterval(initialLockState = true) {
     return () => {
       clearInterval(interval);
     };
-  }, [lastInteraction, isLocked, lockInterval]);
+  }, [lastInteraction, isLocked, lockInterval, autoLock, lockTimeout]);
   
   // Handle session-end locking
   // This doesn't actually work properly in a single-page app

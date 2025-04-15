@@ -7,6 +7,14 @@ export const LOCK_INTERVALS = {
   TIMEOUT_15: 'timeout_15'    // Lock after 15 minutes
 };
 
+// Auto-lock timeout constants (in minutes)
+export const AUTO_LOCK_TIMEOUTS = {
+  TIMEOUT_5: 5,
+  TIMEOUT_15: 15,
+  TIMEOUT_30: 30,
+  TIMEOUT_60: 60
+};
+
 const getInitialState = () => {
   try {
     const userSettings = localStorage.getItem('userSettings');
@@ -17,7 +25,7 @@ const getInitialState = () => {
       darkMode: savedSettings.darkMode !== undefined ? savedSettings.darkMode : true,
       autoLock: savedSettings.autoLock !== undefined ? savedSettings.autoLock : true,
       clearClipboard: savedSettings.clearClipboard !== undefined ? savedSettings.clearClipboard : true,
-      lockTimeout: savedSettings.lockTimeout || 5, // minutes
+      lockTimeout: savedSettings.lockTimeout || AUTO_LOCK_TIMEOUTS.TIMEOUT_5, // minutes
       lockInterval: savedSettings.lockInterval || LOCK_INTERVALS.SESSION_END, // default to session end
     };
   } catch (error) {
@@ -26,7 +34,7 @@ const getInitialState = () => {
       darkMode: true,
       autoLock: true,
       clearClipboard: true,
-      lockTimeout: 5,
+      lockTimeout: AUTO_LOCK_TIMEOUTS.TIMEOUT_5,
       lockInterval: LOCK_INTERVALS.SESSION_END,
     };
   }
@@ -75,7 +83,7 @@ const userSlice = createSlice({
       state.darkMode = true;
       state.autoLock = true;
       state.clearClipboard = true;
-      state.lockTimeout = 5;
+      state.lockTimeout = AUTO_LOCK_TIMEOUTS.TIMEOUT_5;
       state.lockInterval = LOCK_INTERVALS.SESSION_END;
       
       // Save to localStorage

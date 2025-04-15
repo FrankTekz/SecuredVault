@@ -25,8 +25,10 @@ import {
   toggleAutoLock, 
   toggleClearClipboard, 
   setLockInterval,
+  setLockTimeout,
   clearSettings,
-  LOCK_INTERVALS
+  LOCK_INTERVALS,
+  AUTO_LOCK_TIMEOUTS
 } from "@/slices/userSlice";
 import { clearCredentials } from "@/slices/credentialsSlice";
 import { clearNotes } from "@/slices/notesSlice";
@@ -53,7 +55,7 @@ const SettingsRow = ({ title, description, actionElement }) => (
 const Settings = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
-  const { darkMode, autoLock, clearClipboard, lockInterval } = useSelector((state) => state.user);
+  const { darkMode, autoLock, clearClipboard, lockInterval, lockTimeout } = useSelector((state) => state.user);
   
   const [clearDataDialogOpen, setClearDataDialogOpen] = useState(false);
   
@@ -116,6 +118,16 @@ const Settings = () => {
     });
   };
   
+  const handleLockTimeoutChange = (value) => {
+    const timeout = parseInt(value, 10);
+    dispatch(setLockTimeout(timeout));
+    
+    toast({
+      title: "Setting Updated",
+      description: `Auto-lock timeout set to ${timeout} minutes`,
+    });
+  };
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -158,8 +170,8 @@ const Settings = () => {
         />
         
         <SettingsRow
-          title="Lock Interval"
-          description="Choose when to require password re-entry"
+          title="Secured Notes Lock Interval"
+          description="Choose when to require password re-entry for notes"
           actionElement={
             <Select 
               value={lockInterval} 
@@ -179,12 +191,36 @@ const Settings = () => {
         
         <SettingsRow
           title="Auto-Lock"
-          description="Lock the app after 5 minutes of inactivity"
+          description="Automatically lock the application after inactivity"
           actionElement={
-            <Switch
-              checked={autoLock}
-              onCheckedChange={() => dispatch(toggleAutoLock())}
-            />
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={autoLock}
+                onCheckedChange={() => dispatch(toggleAutoLock())}
+              />
+            </div>
+          }
+        />
+        
+        <SettingsRow
+          title="Auto-Lock Timeout"
+          description="Set how long before auto-lock activates"
+          actionElement={
+            <Select 
+              value={lockTimeout.toString()} 
+              onValueChange={handleLockTimeoutChange}
+              disabled={!autoLock}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select timeout" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_5.toString()}>5 Minutes</SelectItem>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_15.toString()}>15 Minutes</SelectItem>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_30.toString()}>30 Minutes</SelectItem>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_60.toString()}>1 Hour</SelectItem>
+              </SelectContent>
+            </Select>
           }
         />
         
