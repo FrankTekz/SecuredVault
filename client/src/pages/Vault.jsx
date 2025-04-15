@@ -7,11 +7,13 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { addCredential } from "@/slices/credentialsSlice";
+import { setSearchQuery, clearSearchQuery } from "@/slices/searchSlice";
 
 const Vault = () => {
   const credentials = useSelector((state) => state.credentials.items);
+  const globalSearchQuery = useSelector((state) => state.search.query);
   const dispatch = useDispatch();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newCredential, setNewCredential] = useState({
     title: "",
@@ -21,10 +23,22 @@ const Vault = () => {
     notes: ""
   });
 
+  // Sync local search query with global search query
+  useEffect(() => {
+    setLocalSearchQuery(globalSearchQuery || "");
+  }, [globalSearchQuery]);
+
+  // Update global search when local search changes
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setLocalSearchQuery(value);
+    dispatch(setSearchQuery(value));
+  };
+
   // Filter credentials based on search query (title or username)
   const filteredCredentials = credentials.filter(cred => 
-    cred.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    cred.username?.toLowerCase().includes(searchQuery.toLowerCase())
+    cred.title?.toLowerCase().includes(localSearchQuery.toLowerCase()) || 
+    cred.username?.toLowerCase().includes(localSearchQuery.toLowerCase())
   );
 
   const handleInputChange = (e) => {
@@ -59,8 +73,8 @@ const Vault = () => {
           <Input 
             type="text" 
             placeholder="Search by title or username..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={localSearchQuery}
+            onChange={handleSearchChange}
             className="md:w-64"
           />
           <Button onClick={() => setIsDialogOpen(true)} className="flex-shrink-0">
