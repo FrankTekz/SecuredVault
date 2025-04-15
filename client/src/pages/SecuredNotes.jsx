@@ -57,6 +57,9 @@ const SecuredNotes = () => {
   // Combine the internal notes lock state with our interval lock
   const isLocked = notesLocked || intervalLocked;
   
+  // Check if we need to create a new password
+  const needsNewPassword = !masterPasswordHash;
+  
   // Handle different lock messages based on the lock interval setting
   const getLockReason = () => {
     if (notesLocked) {
@@ -237,6 +240,7 @@ const SecuredNotes = () => {
         <LockScreen 
           onUnlock={handleUnlock}
           reason={getLockReason()}
+          isNewPassword={needsNewPassword}
         />
       )}
       
