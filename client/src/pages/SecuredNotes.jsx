@@ -58,16 +58,29 @@ const SecuredNotes = () => {
   // Get the hasPasswordSet state from Redux
   const hasPasswordSet = useSelector(state => state.notes.hasPasswordSet);
   
-  // Combine the internal notes lock state with our interval lock
-  // BUT if no password is set, we should never be locked
-  const isLocked = hasPasswordSet ? (notesLocked || intervalLocked) : false;
+  // Add local state to track whether we should show the lock screen
+  const [showLockScreen, setShowLockScreen] = useState(true);
+  
+  // Reset the lock screen state when the hasPasswordSet flag changes
+  useEffect(() => {
+    // If password is set, we need to show the lock screen to enter the password
+    // If no password is set, we will show the lock screen to create a password
+    setShowLockScreen(true);
+  }, [hasPasswordSet]);
+  
+  // Determine if we should lock based on the local state
+  const isLocked = showLockScreen; // Initially true, changed after password creation/entry
   
   // Handle different lock messages based on the lock interval setting
   const getLockReason = () => {
+    // If no password has been set yet, show message to create one
+    if (!hasPasswordSet) {
+      return "Create a master password to secure your notes";
+    }
+    
+    // Otherwise, show regular locking messages
     if (notesLocked) {
-      return !masterPasswordHash
-        ? "Create a master password to secure your notes"
-        : "Enter your master password to access your secured notes";
+      return "Enter your master password to access your secured notes";
     }
     
     switch(lockInterval) {
@@ -99,6 +112,7 @@ const SecuredNotes = () => {
       // First time setup - set master password
       dispatch(setMasterPassword(password));
       setMasterPasswordValue(password); // Store for this session
+      setShowLockScreen(false); // Hide the lock screen after setting password
       toast({
         title: "Vault Unlocked",
         description: "Your master password has been set",
@@ -118,6 +132,7 @@ const SecuredNotes = () => {
       if (inputHash === storedHash) {
         console.log("Notes unlocked successfully");
         setMasterPasswordValue(password); // Store for this session
+        setShowLockScreen(false); // Hide the lock screen after successful unlock
         unlockInterval(); // Also unlock the interval lock
         toast({
           title: "Vault Unlocked",
