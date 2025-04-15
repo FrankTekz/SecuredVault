@@ -21,21 +21,73 @@ const DarkWebScan = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="rounded-lg overflow-hidden"
           >
-            <svg className="w-64 h-64 text-primary/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" strokeWidth="1.5"/>
-              <path d="M12 7V13L16 15" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M4.5 12C4.5 8.41015 7.41015 5.5 11 5.5C14.5899 5.5 17.5 8.41015 17.5 12C17.5 15.5899 14.5899 18.5 11 18.5C7.41015 18.5 4.5 15.5899 4.5 12Z" strokeWidth="1.5" strokeDasharray="2 2"/>
-              <path d="M17.5 6.5L19.5 4.5" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M17.5 17.5L19.5 19.5" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M4.5 4.5L6.5 6.5" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M4.5 19.5L6.5 17.5" strokeWidth="1.5" strokeLinecap="round"/>
+            <svg className="w-40 h-40 md:w-56 md:h-56 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Shield Base */}
+              <path 
+                d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                fill="currentColor" 
+                fillOpacity="0.1"
+              />
+              
+              {/* Lock Icon */}
+              <path 
+                d="M8 11V9C8 6.79086 9.79086 5 12 5C14.2091 5 16 6.79086 16 9V11" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round"
+              />
+              
+              {/* Lock Body */}
+              <rect 
+                x="7" 
+                y="11" 
+                width="10" 
+                height="7" 
+                rx="1" 
+                stroke="currentColor" 
+                strokeWidth="1.5"
+              />
+              
+              {/* Scan Lines */}
+              <path 
+                d="M9 15H15" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round"
+              />
+              
+              <path 
+                d="M9 13H15" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round"
+              />
+              
+              {/* Scanner Effect */}
+              <path 
+                d="M4 10C4 10 8 12 12 12C16 12 20 10 20 10" 
+                stroke="currentColor" 
+                strokeWidth="1" 
+                strokeDasharray="0.5 0.5" 
+                strokeLinecap="round"
+              />
+              
+              <path 
+                d="M4 14C4 14 8 16 12 16C16 16 20 14 20 14" 
+                stroke="currentColor" 
+                strokeWidth="1" 
+                strokeDasharray="0.5 0.5" 
+                strokeLinecap="round"
+              />
             </svg>
           </motion.div>
         </div>
         <h3 className="text-xl font-semibold mb-2">Dark Web Monitoring</h3>
         <p className="text-muted-foreground mb-6">Coming soon. Monitor if your credentials have been exposed in data breaches.</p>
         <Button className="flex items-center">
-          <i className="fas fa-search mr-2"></i> Start Scan
+          <i className="fas fa-shield-alt mr-2"></i> Start Scan
         </Button>
       </Card>
     </motion.div>
