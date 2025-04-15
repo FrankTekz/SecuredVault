@@ -21,12 +21,24 @@ const Vault = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="rounded-lg overflow-hidden"
           >
-            <svg className="w-64 h-64 text-primary/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="6" width="18" height="15" rx="2" strokeWidth="1.5"/>
-              <path d="M3 11H21" strokeWidth="1.5"/>
-              <path d="M8 16H16" strokeWidth="1.5"/>
-              <path d="M7 6V4C7 2.89543 7.89543 2 9 2H15C16.1046 2 17 2.89543 17 4V6" strokeWidth="1.5"/>
-              <circle cx="12" cy="16" r="2" strokeWidth="1.5"/>
+            <svg className="w-40 h-40 md:w-56 md:h-56 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Simple Vault Outline */}
+              <rect 
+                x="3" 
+                y="6" 
+                width="18" 
+                height="15" 
+                rx="2" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                fill="none"
+              />
+              <path 
+                d="M7 6V4C7 2.89543 7.89543 2 9 2H15C16.1046 2 17 2.89543 17 4V6" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                fill="none"
+              />
             </svg>
           </motion.div>
         </div>
