@@ -132,6 +132,9 @@ const notesSlice = createSlice({
       // We clear existing notes as they were encrypted with a different password
       state.items = [];
       
+      // Make sure to unlock the notes with the new password
+      state.isLocked = false;
+      
       // Save to localStorage 
       localStorage.setItem('encryptedNotes', JSON.stringify({
         items: state.items,

@@ -11,6 +11,19 @@ const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
   const [isError, setIsError] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const { toast } = useToast();
+  
+  // Reset errors when typing
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    setIsError(false);
+    setErrorMsg("");
+  };
+  
+  const handleConfirmPasswordChange = (e) => {
+    setConfirmPassword(e.target.value);
+    setIsError(false);
+    setErrorMsg("");
+  };
 
   // This function handles the validation of the master password
   const handleUnlock = (e) => {
@@ -79,7 +92,7 @@ const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
                     type="password"
                     placeholder={isNewPassword ? "Create Master Password" : "Master Password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
                     className={isError ? "border-red-500" : ""}
                     autoFocus
                   />
@@ -91,7 +104,7 @@ const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
                       type="password"
                       placeholder="Confirm Master Password"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={handleConfirmPasswordChange}
                       className={isError ? "border-red-500" : ""}
                     />
                   </div>
