@@ -9,10 +9,24 @@ import SecuredNotes from "@/pages/SecuredNotes";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 import { useMediaQuery } from "@/hooks/use-mobile";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 function App() {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [location] = useLocation();
+  const isDarkMode = useSelector((state) => state.user.darkMode);
+  
+  // Apply dark mode class to the document based on Redux state
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
+  }, [isDarkMode]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
