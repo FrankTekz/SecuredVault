@@ -55,7 +55,8 @@ const SecuredNotes = () => {
   const [currentNote, setCurrentNote] = useState({ id: null, title: "", content: "" });
   
   // Combine the internal notes lock state with our interval lock
-  const isLocked = notesLocked || intervalLocked;
+  // If no master password is set (no hash), don't show lock screen
+  const isLocked = !masterPasswordHash ? false : (notesLocked || intervalLocked);
   
   // Check if we need to create a new password
   const needsNewPassword = !masterPasswordHash;

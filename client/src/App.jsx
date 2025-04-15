@@ -9,13 +9,50 @@ import SecuredNotes from "@/pages/SecuredNotes";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 import { useMediaQuery } from "@/hooks/use-mobile";
-import { useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import LockScreen from "@/components/LockScreen";
+import { setMasterPassword } from "@/slices/notesSlice";
+import { useToast } from "@/hooks/use-toast";
 
 function App() {
+  const { toast } = useToast();
+  const dispatch = useDispatch();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const [location] = useLocation();
   const isDarkMode = useSelector((state) => state.user.darkMode);
+  const masterPasswordHash = useSelector((state) => state.notes.masterPasswordHash);
+  
+  const [showInitialPasswordPrompt, setShowInitialPasswordPrompt] = useState(false);
+  
+  // Check if we need to show the initial password setup prompt
+  useEffect(() => {
+    // Only show password prompt if no password exists
+    if (!masterPasswordHash) {
+      setShowInitialPasswordPrompt(true);
+    }
+  }, [masterPasswordHash]);
+  
+  // Handle the initial password setup
+  const handleSetInitialPassword = (password) => {
+    if (!password || password.trim() === '') {
+      toast({
+        title: "Error",
+        description: "Please enter a valid master password",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Set the master password
+    dispatch(setMasterPassword(password));
+    setShowInitialPasswordPrompt(false);
+    
+    toast({
+      title: "Password Created",
+      description: "Your master password has been set successfully",
+    });
+  };
   
   // Apply dark mode class to the document based on Redux state
   useEffect(() => {
@@ -36,15 +73,26 @@ function App() {
         {isMobile && <Header />}
         
         <div className="container mx-auto p-4 pb-20 md:pb-4">
-          <Switch>
-            <Route path="/" component={PasswordGenerator} />
-            <Route path="/vault" component={Vault} />
-            <Route path="/dark-web-scan" component={DarkWebScan} />
-            <Route path="/password-generator" component={PasswordGenerator} />
-            <Route path="/secured-notes" component={SecuredNotes} />
-            <Route path="/settings" component={Settings} />
-            <Route component={NotFound} />
-          </Switch>
+          {/* Initial password setup prompt when app loads for the first time */}
+          {showInitialPasswordPrompt ? (
+            <div className="max-w-md mx-auto my-12">
+              <LockScreen 
+                onUnlock={handleSetInitialPassword}
+                reason="Welcome to SecurePass! Please create a master password to secure your data."
+                isNewPassword={true}
+              />
+            </div>
+          ) : (
+            <Switch>
+              <Route path="/" component={PasswordGenerator} />
+              <Route path="/vault" component={Vault} />
+              <Route path="/dark-web-scan" component={DarkWebScan} />
+              <Route path="/password-generator" component={PasswordGenerator} />
+              <Route path="/secured-notes" component={SecuredNotes} />
+              <Route path="/settings" component={Settings} />
+              <Route component={NotFound} />
+            </Switch>
+          )}
         </div>
       </main>
       
