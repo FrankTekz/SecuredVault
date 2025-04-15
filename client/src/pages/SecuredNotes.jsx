@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -49,8 +50,9 @@ const SecuredNotes = () => {
   
   const [masterPassword, setMasterPasswordValue] = useState("");
   const [addNoteOpen, setAddNoteOpen] = useState(false);
+  const [editNoteOpen, setEditNoteOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
-  const [newNote, setNewNote] = useState({ title: "", content: "" });
+  const [currentNote, setCurrentNote] = useState({ id: null, title: "", content: "" });
   
   // Combine the internal notes lock state with our interval lock
   const isLocked = notesLocked || intervalLocked;
@@ -113,8 +115,27 @@ const SecuredNotes = () => {
     }
   };
   
+  const handleAddNote = () => {
+    setCurrentNote({ id: null, title: "", content: "" });
+    setAddNoteOpen(true);
+  };
+  
+  const handleEditNote = (note) => {
+    // Decrypt the note content
+    const decryptedContent = decryptNote(note.content, masterPassword);
+    
+    // Set the current note with decrypted content for editing
+    setCurrentNote({
+      id: note.id,
+      title: note.title,
+      content: decryptedContent
+    });
+    
+    setEditNoteOpen(true);
+  };
+  
   const handleSaveNote = () => {
-    if (!newNote.title || !newNote.content) {
+    if (!currentNote.title || !currentNote.content) {
       toast({
         title: "Error",
         description: "Please provide both title and content",
@@ -123,18 +144,38 @@ const SecuredNotes = () => {
       return;
     }
     
-    dispatch(addNote({
-      ...newNote,
-      masterPassword
-    }));
+    // For new notes
+    if (!currentNote.id) {
+      dispatch(addNote({
+        title: currentNote.title,
+        content: currentNote.content,
+        masterPassword
+      }));
+      
+      toast({
+        title: "Note Saved",
+        description: "Your note has been encrypted and saved",
+      });
+    } 
+    // For editing existing notes
+    else {
+      dispatch(updateNote({
+        id: currentNote.id,
+        title: currentNote.title,
+        content: currentNote.content,
+        masterPassword
+      }));
+      
+      toast({
+        title: "Note Updated",
+        description: "Your note has been updated and encrypted",
+      });
+    }
     
-    toast({
-      title: "Note Saved",
-      description: "Your note has been encrypted and saved",
-    });
-    
-    setNewNote({ title: "", content: "" });
+    // Reset form and close dialogs
+    setCurrentNote({ id: null, title: "", content: "" });
     setAddNoteOpen(false);
+    setEditNoteOpen(false);
   };
   
   const handleDeleteNote = (id) => {
@@ -204,7 +245,7 @@ const SecuredNotes = () => {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Secured Notes</h2>
-            <Button onClick={() => setAddNoteOpen(true)}>
+            <Button onClick={handleAddNote}>
               <i className="fas fa-plus mr-2"></i> New Note
             </Button>
           </div>
@@ -230,7 +271,12 @@ const SecuredNotes = () => {
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-semibold text-lg">{note.title}</h3>
                           <div>
-                            <Button variant="ghost" size="icon" className="p-1 h-auto w-auto">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="p-1 h-auto w-auto"
+                              onClick={() => handleEditNote(note)}
+                            >
                               <i className="fas fa-pencil-alt"></i>
                             </Button>
                             <Button 
@@ -270,7 +316,7 @@ const SecuredNotes = () => {
                     <p className="text-muted-foreground mb-6">
                       Add your first secure note by clicking the "New Note" button
                     </p>
-                    <Button onClick={() => setAddNoteOpen(true)}>
+                    <Button onClick={handleAddNote}>
                       <i className="fas fa-plus mr-2"></i> Add Your First Note
                     </Button>
                   </div>
@@ -295,6 +341,9 @@ const SecuredNotes = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Add New Note</DialogTitle>
+                <DialogDescription>
+                  Create a new encrypted secure note.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -302,8 +351,8 @@ const SecuredNotes = () => {
                   <Input
                     id="noteTitle"
                     placeholder="Note Title"
-                    value={newNote.title}
-                    onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+                    value={currentNote.title}
+                    onChange={(e) => setCurrentNote({ ...currentNote, title: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -312,8 +361,8 @@ const SecuredNotes = () => {
                     id="noteContent"
                     placeholder="Enter your secured note content..."
                     rows={6}
-                    value={newNote.content}
-                    onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                    value={currentNote.content}
+                    onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
                   />
                 </div>
               </div>
@@ -322,6 +371,45 @@ const SecuredNotes = () => {
                   <Button variant="secondary">Cancel</Button>
                 </DialogClose>
                 <Button onClick={handleSaveNote}>Save Note</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Edit Note Dialog */}
+          <Dialog open={editNoteOpen} onOpenChange={setEditNoteOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Note</DialogTitle>
+                <DialogDescription>
+                  Make changes to your encrypted note.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editNoteTitle">Title</Label>
+                  <Input
+                    id="editNoteTitle"
+                    placeholder="Note Title"
+                    value={currentNote.title}
+                    onChange={(e) => setCurrentNote({ ...currentNote, title: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editNoteContent">Content</Label>
+                  <Textarea
+                    id="editNoteContent"
+                    placeholder="Enter your secured note content..."
+                    rows={6}
+                    value={currentNote.content}
+                    onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="secondary">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleSaveNote}>Update Note</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
