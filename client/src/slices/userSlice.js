@@ -26,7 +26,7 @@ const getInitialState = () => {
       autoLock: savedSettings.autoLock !== undefined ? savedSettings.autoLock : true,
       clearClipboard: savedSettings.clearClipboard !== undefined ? savedSettings.clearClipboard : true,
       lockTimeout: savedSettings.lockTimeout || AUTO_LOCK_TIMEOUTS.TIMEOUT_5, // minutes
-      lockInterval: savedSettings.lockInterval || LOCK_INTERVALS.SESSION_END, // default to session end
+      lockInterval: savedSettings.lockInterval || LOCK_INTERVALS.EVERY_USE, // default to every use
     };
   } catch (error) {
     console.error('Failed to load user settings from localStorage:', error);
@@ -35,7 +35,7 @@ const getInitialState = () => {
       autoLock: true,
       clearClipboard: true,
       lockTimeout: AUTO_LOCK_TIMEOUTS.TIMEOUT_5,
-      lockInterval: LOCK_INTERVALS.SESSION_END,
+      lockInterval: LOCK_INTERVALS.EVERY_USE,
     };
   }
 };
@@ -84,7 +84,7 @@ const userSlice = createSlice({
       state.autoLock = true;
       state.clearClipboard = true;
       state.lockTimeout = AUTO_LOCK_TIMEOUTS.TIMEOUT_5;
-      state.lockInterval = LOCK_INTERVALS.SESSION_END;
+      state.lockInterval = LOCK_INTERVALS.EVERY_USE;
       
       // Save to localStorage
       localStorage.setItem('userSettings', JSON.stringify(state));

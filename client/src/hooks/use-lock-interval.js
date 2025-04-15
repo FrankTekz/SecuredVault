@@ -7,9 +7,16 @@ export function useLockInterval(initialLockState = true) {
   const [isLocked, setIsLocked] = useState(initialLockState);
   const [lastInteraction, setLastInteraction] = useState(Date.now());
   const { lockInterval, autoLock, lockTimeout } = useSelector((state) => state.user);
+  const { masterPasswordHash } = useSelector((state) => state.notes);
+  
+  // If no master password is set, we don't need locking features
+  const hasPasswordSet = masterPasswordHash && masterPasswordHash.length > 0;
   
   // Track user activity for both note-specific timeout and app-wide auto-lock
   useEffect(() => {
+    // Only track activity if a master password is set
+    if (!hasPasswordSet) return;
+    
     // Check if we need to track activity for any timeout-based locking
     const needsActivityTracking = 
       lockInterval === LOCK_INTERVALS.TIMEOUT_15 || 
@@ -32,10 +39,13 @@ export function useLockInterval(initialLockState = true) {
         window.removeEventListener(event, updateLastInteraction);
       });
     };
-  }, [lockInterval, autoLock, lockTimeout]);
+  }, [lockInterval, autoLock, lockTimeout, hasPasswordSet]);
   
   // Check for timeout-based locking
   useEffect(() => {
+    // If no password is set, don't apply locking
+    if (!hasPasswordSet) return;
+    
     // If already locked, no need to check timeout
     if (isLocked) return;
     
@@ -73,12 +83,15 @@ export function useLockInterval(initialLockState = true) {
     return () => {
       clearInterval(interval);
     };
-  }, [lastInteraction, isLocked, lockInterval, autoLock, lockTimeout]);
+  }, [lastInteraction, isLocked, lockInterval, autoLock, lockTimeout, hasPasswordSet]);
   
   // Handle session-end locking
   // This doesn't actually work properly in a single-page app
   // But it's a placeholder for the concept
   useEffect(() => {
+    // Skip if no password is set
+    if (!hasPasswordSet) return;
+    
     if (lockInterval !== LOCK_INTERVALS.SESSION_END) return;
     
     const handleVisibilityChange = () => {
@@ -94,21 +107,27 @@ export function useLockInterval(initialLockState = true) {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [lockInterval]);
+  }, [lockInterval, hasPasswordSet]);
   
   // Check if we should always lock (EVERY_USE setting)
   useEffect(() => {
+    // Skip if no password is set
+    if (!hasPasswordSet) return;
+    
     if (lockInterval === LOCK_INTERVALS.EVERY_USE) {
       setIsLocked(true);
     }
-  }, [lockInterval]);
+  }, [lockInterval, hasPasswordSet]);
   
   // Force initial lock state for EVERY_USE setting
   useEffect(() => {
+    // Skip if no password is set
+    if (!hasPasswordSet) return;
+    
     if (lockInterval === LOCK_INTERVALS.EVERY_USE && !isLocked) {
       setIsLocked(true);
     }
-  }, []);
+  }, [hasPasswordSet]);
   
   // Provide an unlock function to clear the lock state
   const unlock = () => {
@@ -116,5 +135,8 @@ export function useLockInterval(initialLockState = true) {
     setLastInteraction(Date.now());
   };
   
-  return { isLocked, unlock };
+  // If no password is set, never lock (override internal state)
+  const effectiveIsLocked = hasPasswordSet ? isLocked : false;
+  
+  return { isLocked: effectiveIsLocked, unlock };
 }
