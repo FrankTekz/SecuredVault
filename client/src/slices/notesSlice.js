@@ -39,29 +39,21 @@ const notesSlice = createSlice({
     
     unlockNotes: (state, action) => {
       const passwordHash = CryptoJS.SHA256(action.payload).toString();
-      console.log("Comparing password hashes:", { 
-        inputHash: passwordHash.substring(0, 10) + "...", 
-        storedHash: state.masterPasswordHash.substring(0, 10) + "..." 
-      });
       
       if (passwordHash === state.masterPasswordHash) {
         state.isLocked = false;
         
         // Update localStorage
         localStorage.setItem('encryptedNotes', JSON.stringify({
-          items: state.items,
-          masterPasswordHash: state.masterPasswordHash,
+          ...state,
           isLocked: false
         }));
         
-        console.log("Notes unlocked successfully");
-        return { isLocked: false };
-      } else {
-        console.log("Password hash mismatch - not unlocking");
+        return state;
       }
       
       // Return unchanged state if password is incorrect
-      return { isLocked: true };
+      return state;
     },
     
     lockNotes: (state) => {
@@ -131,25 +123,6 @@ const notesSlice = createSlice({
       // Save to localStorage
       localStorage.setItem('encryptedNotes', JSON.stringify(state));
     },
-    
-    resetMasterPassword: (state, action) => {
-      // Store a hash of the new master password
-      const passwordHash = CryptoJS.SHA256(action.payload).toString();
-      state.masterPasswordHash = passwordHash;
-      
-      // We clear existing notes as they were encrypted with a different password
-      state.items = [];
-      
-      // Make sure to unlock the notes with the new password
-      state.isLocked = false;
-      
-      // Save to localStorage 
-      localStorage.setItem('encryptedNotes', JSON.stringify({
-        items: state.items,
-        masterPasswordHash: passwordHash,
-        isLocked: false
-      }));
-    },
   },
 });
 
@@ -160,8 +133,7 @@ export const {
   addNote,
   updateNote,
   deleteNote,
-  clearNotes,
-  resetMasterPassword
+  clearNotes
 } = notesSlice.actions;
 
 export const decryptNote = (encryptedContent, masterPassword) => {

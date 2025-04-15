@@ -55,11 +55,7 @@ const SecuredNotes = () => {
   const [currentNote, setCurrentNote] = useState({ id: null, title: "", content: "" });
   
   // Combine the internal notes lock state with our interval lock
-  // If no master password is set (no hash), don't show lock screen
-  const isLocked = !masterPasswordHash ? false : (notesLocked || intervalLocked);
-  
-  // Check if we need to create a new password
-  const needsNewPassword = !masterPasswordHash;
+  const isLocked = notesLocked || intervalLocked;
   
   // Handle different lock messages based on the lock interval setting
   const getLockReason = () => {
@@ -82,62 +78,40 @@ const SecuredNotes = () => {
   };
   
   const handleUnlock = (password = masterPassword) => {
-    console.log("Notes handleUnlock called with password:", !!password);
-    
-    try {
-      if (!password) {
-        console.log("No password provided");
-        toast({
-          title: "Error",
-          description: "Please enter your master password",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (!masterPasswordHash) {
-        console.log("Setting new master password");
-        // First time setup - set master password
-        dispatch(setMasterPassword(password));
-        setMasterPasswordValue(password); // Save the password for encrypting notes
-        
-        toast({
-          title: "Vault Unlocked",
-          description: "Your master password has been set",
-        });
-        unlockInterval(); // Also unlock the interval lock
-      } else {
-        console.log("Unlocking with existing password");
-        // Unlock with existing password
-        const action = dispatch(unlockNotes(password));
-        console.log("Unlock action:", action);
-        
-        // Store the password for encrypting/decrypting notes
-        setMasterPasswordValue(password);
-        
-        if (action.payload?.isLocked === false) {
-          console.log("Notes unlocked successfully via the action payload");
-          unlockInterval(); // Also unlock the interval lock
-          toast({
-            title: "Vault Unlocked",
-            description: "Your notes are now accessible",
-          });
-        } else {
-          console.log("Password verification failed");
-          toast({
-            title: "Error",
-            description: "Incorrect master password",
-            variant: "destructive",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleUnlock:", error);
+    if (!password) {
       toast({
         title: "Error",
-        description: "An error occurred when processing your password",
+        description: "Please enter your master password",
         variant: "destructive",
       });
+      return;
+    }
+    
+    if (!masterPasswordHash) {
+      // First time setup - set master password
+      dispatch(setMasterPassword(password));
+      toast({
+        title: "Vault Unlocked",
+        description: "Your master password has been set",
+      });
+      unlockInterval(); // Also unlock the interval lock
+    } else {
+      // Unlock with existing password
+      const result = dispatch(unlockNotes(password));
+      
+      if (result.payload?.isLocked === false) {
+        unlockInterval(); // Also unlock the interval lock
+        toast({
+          title: "Vault Unlocked",
+          description: "Your notes are now accessible",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Incorrect master password",
+          variant: "destructive",
+        });
+      }
     }
   };
   
@@ -263,7 +237,6 @@ const SecuredNotes = () => {
         <LockScreen 
           onUnlock={handleUnlock}
           reason={getLockReason()}
-          isNewPassword={needsNewPassword}
         />
       )}
       

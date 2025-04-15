@@ -5,86 +5,26 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
+const LockScreen = ({ onUnlock, reason }) => {
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isError, setIsError] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const { toast } = useToast();
-  
-  // Reset errors when typing
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-    setIsError(false);
-    setErrorMsg("");
-  };
-  
-  const handleConfirmPasswordChange = (e) => {
-    setConfirmPassword(e.target.value);
-    setIsError(false);
-    setErrorMsg("");
-  };
 
-  // This function handles the validation of the master password
+  // This function would handle the validation of the master password
+  // In a real app, we would verify it against a securely stored hash
   const handleUnlock = (e) => {
-    // Prevent default form submission
     e.preventDefault();
-    console.log("Form submitted", { isNewPassword, password });
     
-    try {
-      if (isNewPassword) {
-        // Validate new password setup
-        if (password.trim().length === 0) {
-          setIsError(true);
-          setErrorMsg("Password cannot be empty");
-          toast({
-            title: "Password Required",
-            description: "Please enter a master password",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        if (password !== confirmPassword) {
-          setIsError(true);
-          setErrorMsg("Passwords do not match");
-          toast({
-            title: "Passwords Don't Match",
-            description: "Please make sure your passwords match",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Passwords match, set the new master password
-        console.log("Creating new password");
-        onUnlock(password);
-        setPassword("");
-        setConfirmPassword("");
-        setIsError(false);
-        
-      } else {
-        // Regular unlock with existing password
-        if (password.trim().length > 0) {
-          console.log("Unlocking with password");
-          onUnlock(password);
-          setPassword("");
-          setIsError(false);
-        } else {
-          setIsError(true);
-          setErrorMsg("Password cannot be empty");
-          toast({
-            title: "Unlock Failed",
-            description: "Please enter your master password",
-            variant: "destructive",
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleUnlock:", error);
+    // For demo purposes, any non-empty password will work
+    if (password.trim().length > 0) {
+      onUnlock(password);
+      setPassword("");
+      setIsError(false);
+    } else {
+      setIsError(true);
       toast({
-        title: "Error",
-        description: "An error occurred while processing your request",
+        title: "Unlock Failed",
+        description: "Please enter your master password",
         variant: "destructive",
       });
     }
@@ -109,43 +49,23 @@ const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUnlock}>
-              <div className="space-y-4">
-                <div>
-                  <Input
-                    type="password"
-                    placeholder={isNewPassword ? "Create Master Password" : "Master Password"}
-                    value={password}
-                    onChange={handlePasswordChange}
-                    className={isError ? "border-red-500" : ""}
-                    autoFocus
-                  />
-                </div>
-                
-                {isNewPassword && (
-                  <div>
-                    <Input
-                      type="password"
-                      placeholder="Confirm Master Password"
-                      value={confirmPassword}
-                      onChange={handleConfirmPasswordChange}
-                      className={isError ? "border-red-500" : ""}
-                    />
-                  </div>
-                )}
-                
+              <div className="mb-4">
+                <Input
+                  type="password"
+                  placeholder="Master Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={isError ? "border-red-500" : ""}
+                  autoFocus
+                />
                 {isError && (
-                  <p className="text-red-500 text-xs">
-                    {errorMsg}
+                  <p className="text-red-500 text-xs mt-1">
+                    Password cannot be empty
                   </p>
                 )}
               </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full mt-4"
-                onClick={handleUnlock} // Add direct click handler for mobile devices
-              >
-                {isNewPassword ? "Create Password" : "Unlock"}
+              <Button type="submit" className="w-full">
+                Unlock
               </Button>
             </form>
           </CardContent>
