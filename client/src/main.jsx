@@ -1,8 +1,12 @@
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import App from "./App";
 import store from "./store";
+import App from "./App";
 import "./index.css";
+
+// Clear localStorage completely for a clean start
+localStorage.clear();
+console.log("Main.jsx: localStorage completely cleared");
 
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>
