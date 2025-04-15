@@ -17,7 +17,7 @@ const LockScreen = ({ onUnlock, reason }) => {
     
     // For demo purposes, any non-empty password will work
     if (password.trim().length > 0) {
-      onUnlock(true);
+      onUnlock(password);
       setPassword("");
       setIsError(false);
     } else {
@@ -36,12 +36,12 @@ const LockScreen = ({ onUnlock, reason }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="w-full"
       >
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-lg mx-auto my-8">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">
-              <i className="fas fa-lock text-primary mr-2"></i> Vault Locked
+            <CardTitle className="text-xl font-bold">
+              <i className="fas fa-lock text-primary mr-2"></i> Note Access Required
             </CardTitle>
             <CardDescription>
               {reason || "Enter your master password to access your secure notes"}
