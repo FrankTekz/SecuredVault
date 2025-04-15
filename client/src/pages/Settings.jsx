@@ -152,10 +152,13 @@ const Settings = () => {
           title="Dark Mode"
           description="Enable or disable dark mode"
           actionElement={
-            <Switch
-              checked={darkMode}
-              onCheckedChange={() => dispatch(toggleDarkMode())}
-            />
+            <div className="flex items-center gap-2">
+              <i className="fas fa-moon text-muted-foreground mr-2"></i>
+              <Switch
+                checked={darkMode}
+                onCheckedChange={() => dispatch(toggleDarkMode())}
+              />
+            </div>
           }
         />
         

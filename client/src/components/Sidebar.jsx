@@ -35,12 +35,12 @@ const Sidebar = () => {
             SecureVault
           </h1>
           <Button 
-            variant="ghost" 
+            variant={isDarkMode ? "default" : "ghost"}
             size="icon" 
             onClick={() => dispatch(toggleDarkMode())}
-            className="p-2"
+            className="p-2 transition-colors"
           >
-            <i className={`fas ${isDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
+            <i className="fas fa-moon"></i>
           </Button>
         </div>
         <div className="mt-4">
