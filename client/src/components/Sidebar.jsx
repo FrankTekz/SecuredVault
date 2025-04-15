@@ -19,7 +19,7 @@ const Sidebar = () => {
 
   const navItems = [
     { path: '/vault', icon: 'fas fa-vault', label: 'Vault' },
-    { path: '/dark-web-scan', icon: 'fas fa-search', label: 'Dark Web Scan' },
+    { path: '/dark-web-scan', icon: 'fas fa-shield-alt', label: 'Dark Web Scan' },
     { path: '/password-generator', icon: 'fas fa-key', label: 'Password Generator' },
     { path: '/secured-notes', icon: 'fas fa-sticky-note', label: 'Secured Notes' },
   ];
@@ -56,7 +56,7 @@ const Sidebar = () => {
                 href={item.path}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
                   isActive(item.path)
-                    ? "bg-accent text-accent-foreground font-medium"
+                    ? "bg-primary bg-opacity-10 text-primary font-medium"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
@@ -73,7 +73,7 @@ const Sidebar = () => {
           href="/settings"
           className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
             isActive('/settings')
-              ? "bg-accent text-accent-foreground font-medium"
+              ? "bg-primary bg-opacity-10 text-primary font-medium"
               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
           }`}
         >

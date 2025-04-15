@@ -48,7 +48,7 @@ function App() {
               href="/dark-web-scan" 
               className={`flex flex-col items-center ${location === '/dark-web-scan' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className="fas fa-search mb-1 text-lg"></i>
+              <i className="fas fa-shield-alt mb-1 text-lg"></i>
               <span>Scan</span>
             </a>
             <a 
