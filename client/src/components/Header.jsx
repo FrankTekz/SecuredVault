@@ -45,11 +45,12 @@ const Header = () => {
               <i className="fas fa-search"></i>
             </Button>
             <Button 
-              variant="ghost" 
+              variant={isDarkMode ? "default" : "ghost"}
               size="icon" 
               onClick={() => dispatch(toggleDarkMode())}
+              className="transition-colors"
             >
-              <i className={`fas ${isDarkMode ? 'fa-sun' : 'fa-moon'}`}></i>
+              <i className="fas fa-moon"></i>
             </Button>
           </>
         )}
