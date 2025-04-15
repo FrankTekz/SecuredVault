@@ -123,6 +123,22 @@ const notesSlice = createSlice({
       // Save to localStorage
       localStorage.setItem('encryptedNotes', JSON.stringify(state));
     },
+    
+    resetMasterPassword: (state, action) => {
+      // Store a hash of the new master password
+      const passwordHash = CryptoJS.SHA256(action.payload).toString();
+      state.masterPasswordHash = passwordHash;
+      
+      // We clear existing notes as they were encrypted with a different password
+      state.items = [];
+      
+      // Save to localStorage 
+      localStorage.setItem('encryptedNotes', JSON.stringify({
+        items: state.items,
+        masterPasswordHash: passwordHash,
+        isLocked: false
+      }));
+    },
   },
 });
 
@@ -133,7 +149,8 @@ export const {
   addNote,
   updateNote,
   deleteNote,
-  clearNotes
+  clearNotes,
+  resetMasterPassword
 } = notesSlice.actions;
 
 export const decryptNote = (encryptedContent, masterPassword) => {

@@ -5,28 +5,52 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-const LockScreen = ({ onUnlock, reason }) => {
+const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isError, setIsError] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const { toast } = useToast();
 
-  // This function would handle the validation of the master password
-  // In a real app, we would verify it against a securely stored hash
+  // This function handles the validation of the master password
   const handleUnlock = (e) => {
     e.preventDefault();
     
-    // For demo purposes, any non-empty password will work
-    if (password.trim().length > 0) {
+    if (isNewPassword) {
+      // Validate new password setup
+      if (password.trim().length === 0) {
+        setIsError(true);
+        setErrorMsg("Password cannot be empty");
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        setIsError(true);
+        setErrorMsg("Passwords do not match");
+        return;
+      }
+      
+      // Passwords match, set the new master password
       onUnlock(password);
       setPassword("");
+      setConfirmPassword("");
       setIsError(false);
+      
     } else {
-      setIsError(true);
-      toast({
-        title: "Unlock Failed",
-        description: "Please enter your master password",
-        variant: "destructive",
-      });
+      // Regular unlock with existing password
+      if (password.trim().length > 0) {
+        onUnlock(password);
+        setPassword("");
+        setIsError(false);
+      } else {
+        setIsError(true);
+        setErrorMsg("Password cannot be empty");
+        toast({
+          title: "Unlock Failed",
+          description: "Please enter your master password",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -49,23 +73,39 @@ const LockScreen = ({ onUnlock, reason }) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUnlock}>
-              <div className="mb-4">
-                <Input
-                  type="password"
-                  placeholder="Master Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={isError ? "border-red-500" : ""}
-                  autoFocus
-                />
+              <div className="space-y-4">
+                <div>
+                  <Input
+                    type="password"
+                    placeholder={isNewPassword ? "Create Master Password" : "Master Password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={isError ? "border-red-500" : ""}
+                    autoFocus
+                  />
+                </div>
+                
+                {isNewPassword && (
+                  <div>
+                    <Input
+                      type="password"
+                      placeholder="Confirm Master Password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className={isError ? "border-red-500" : ""}
+                    />
+                  </div>
+                )}
+                
                 {isError && (
-                  <p className="text-red-500 text-xs mt-1">
-                    Password cannot be empty
+                  <p className="text-red-500 text-xs">
+                    {errorMsg}
                   </p>
                 )}
               </div>
-              <Button type="submit" className="w-full">
-                Unlock
+              
+              <Button type="submit" className="w-full mt-4">
+                {isNewPassword ? "Create Password" : "Unlock"}
               </Button>
             </form>
           </CardContent>

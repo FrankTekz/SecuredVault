@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,6 +13,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -31,7 +42,7 @@ import {
   AUTO_LOCK_TIMEOUTS
 } from "@/slices/userSlice";
 import { clearCredentials } from "@/slices/credentialsSlice";
-import { clearNotes } from "@/slices/notesSlice";
+import { clearNotes, resetMasterPassword } from "@/slices/notesSlice";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -58,6 +69,10 @@ const Settings = () => {
   const { darkMode, autoLock, clearClipboard, lockInterval, lockTimeout } = useSelector((state) => state.user);
   
   const [clearDataDialogOpen, setClearDataDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   
   const handleExportPasswords = () => {
     toast({
@@ -74,9 +89,35 @@ const Settings = () => {
   };
   
   const handleChangeMasterPassword = () => {
+    setPasswordDialogOpen(true);
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError("");
+  };
+  
+  const handlePasswordSubmit = () => {
+    // Simple validation
+    if (!newPassword) {
+      setPasswordError("Password cannot be empty");
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    
+    // Reset the master password
+    dispatch(resetMasterPassword(newPassword));
+    
+    // Close dialog and clear inputs
+    setPasswordDialogOpen(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    
     toast({
-      title: "Feature Coming Soon",
-      description: "Master password change will be available in a future update.",
+      title: "Password Reset",
+      description: "Your master password has been reset. Note that previous secured notes have been cleared.",
     });
   };
   
@@ -286,6 +327,50 @@ const Settings = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Master Password Change Dialog */}
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Master Password</DialogTitle>
+            <DialogDescription>
+              Your master password is used to encrypt and access your secure notes. 
+              Changing it will reset your secured notes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Master Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {passwordError && (
+                <p className="text-red-500 text-xs mt-1">{passwordError}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="secondary">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handlePasswordSubmit}>Reset Password</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 };
