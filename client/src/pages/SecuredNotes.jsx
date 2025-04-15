@@ -55,8 +55,12 @@ const SecuredNotes = () => {
   const [noteToDelete, setNoteToDelete] = useState(null);
   const [currentNote, setCurrentNote] = useState({ id: null, title: "", content: "" });
   
+  // Check if a master password has been set
+  const hasPasswordSet = masterPasswordHash && masterPasswordHash.length > 0;
+  
   // Combine the internal notes lock state with our interval lock
-  const isLocked = notesLocked || intervalLocked;
+  // BUT if no password is set, we should never be locked
+  const isLocked = hasPasswordSet ? (notesLocked || intervalLocked) : false;
   
   // Handle different lock messages based on the lock interval setting
   const getLockReason = () => {
@@ -136,6 +140,27 @@ const SecuredNotes = () => {
   };
   
   const handleEditNote = (note) => {
+    // If no master password is set, we need to prompt the user to set one first
+    if (!hasPasswordSet) {
+      toast({
+        title: "Password Required",
+        description: "Please set a master password to edit encrypted notes.",
+        action: (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => {
+              // Show the password setting dialog
+              dispatch({ type: "notes/lockNotes" });
+            }}
+          >
+            Set Password
+          </Button>
+        ),
+      });
+      return;
+    }
+    
     // Decrypt the note content
     const decryptedContent = decryptNote(note.content, masterPassword);
     
@@ -155,6 +180,32 @@ const SecuredNotes = () => {
         title: "Error",
         description: "Please provide both title and content",
         variant: "destructive",
+      });
+      return;
+    }
+    
+    // If no master password is set, we need to prompt the user to set one first
+    if (!hasPasswordSet) {
+      // First we'll close the current dialog
+      setAddNoteOpen(false);
+      setEditNoteOpen(false);
+      
+      // Show a custom toast prompting to set a password
+      toast({
+        title: "Password Required",
+        description: "Please set a master password to encrypt your notes.",
+        action: (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => {
+              // Show the password setting dialog (reusing the lock screen)
+              dispatch({ type: "notes/lockNotes" });
+            }}
+          >
+            Set Password
+          </Button>
+        ),
       });
       return;
     }
@@ -194,6 +245,28 @@ const SecuredNotes = () => {
   };
   
   const handleDeleteNote = (id) => {
+    // If no master password is set, we need to prompt the user to set one first
+    if (!hasPasswordSet) {
+      setNoteToDelete(null);
+      toast({
+        title: "Password Required",
+        description: "Please set a master password to manage encrypted notes.",
+        action: (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => {
+              // Show the password setting dialog
+              dispatch({ type: "notes/lockNotes" });
+            }}
+          >
+            Set Password
+          </Button>
+        ),
+      });
+      return;
+    }
+    
     dispatch(deleteNote(id));
     setNoteToDelete(null);
     
@@ -204,6 +277,27 @@ const SecuredNotes = () => {
   };
   
   const handleExportNotes = () => {
+    // Check if master password exists
+    if (!hasPasswordSet) {
+      toast({
+        title: "Password Required",
+        description: "Please set a master password to export encrypted notes.",
+        action: (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => {
+              // Show the password setting dialog
+              dispatch({ type: "notes/lockNotes" });
+            }}
+          >
+            Set Password
+          </Button>
+        ),
+      });
+      return;
+    }
+    
     // Create a simple PDF-like export (text format)
     let exportContent = "SECURED NOTES EXPORT\n\n";
     
@@ -328,9 +422,20 @@ const SecuredNotes = () => {
                       <i className="fas fa-sticky-note"></i>
                     </motion.div>
                     <h3 className="text-xl font-semibold mb-2">No Notes Yet</h3>
-                    <p className="text-muted-foreground mb-6">
+                    <p className="text-muted-foreground mb-4">
                       Add your first secure note by clicking the "New Note" button
                     </p>
+                    
+                    {!hasPasswordSet && (
+                      <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md mb-4 text-sm">
+                        <p className="text-blue-600 dark:text-blue-400 font-medium">
+                          <i className="fas fa-info-circle mr-2"></i>
+                          You'll need to set a master password when creating your first note.
+                          This password will be used to encrypt all your secure notes.
+                        </p>
+                      </div>
+                    )}
+                    
                     <Button onClick={handleAddNote}>
                       <i className="fas fa-plus mr-2"></i> Add Your First Note
                     </Button>
