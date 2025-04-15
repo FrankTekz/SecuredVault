@@ -58,6 +58,11 @@ const SecuredNotes = () => {
   // Get the hasPasswordSet state from Redux
   const hasPasswordSet = useSelector(state => state.notes.hasPasswordSet);
   
+  console.log("SecuredNotes rendering with Redux state:", { 
+    hasPasswordSet, 
+    masterPasswordHash 
+  });
+  
   // Add local state to track whether we should show the lock screen
   const [showLockScreen, setShowLockScreen] = useState(true);
   

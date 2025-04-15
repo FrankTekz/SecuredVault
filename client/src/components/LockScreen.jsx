@@ -13,7 +13,9 @@ const LockScreen = ({ onUnlock, reason }) => {
   const { toast } = useToast();
 
   // Check if this is for creating a new password or unlocking with existing password
-  const isCreatingPassword = reason && reason.includes("Create a master password");
+  const isCreatingPassword = reason && reason.toLowerCase().includes("create a master password");
+  
+  console.log("LockScreen render:", { isCreatingPassword, reason });
   
   // This function would handle the validation of the master password
   // In a real app, we would verify it against a securely stored hash
