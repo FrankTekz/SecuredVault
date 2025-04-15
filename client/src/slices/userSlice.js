@@ -30,11 +30,24 @@ const userSlice = createSlice({
     toggleDarkMode: (state) => {
       state.darkMode = !state.darkMode;
       
-      // Apply dark mode class to document
-      if (state.darkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
+      // Update theme.json appearance value through meta theme-color
+      try {
+        // Update meta theme-color for mobile browsers
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+          metaThemeColor.setAttribute('content', state.darkMode ? '#121212' : '#ffffff');
+        }
+        
+        // Apply dark mode class to document for tailwind dark mode
+        if (state.darkMode) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.documentElement.style.colorScheme = 'light';
+        }
+      } catch (err) {
+        console.error('Error applying dark mode:', err);
       }
       
       // Save to localStorage
@@ -75,10 +88,25 @@ const userSlice = createSlice({
 });
 
 // Apply initial dark mode setting
-if (getInitialState().darkMode) {
-  document.documentElement.classList.add('dark');
-} else {
-  document.documentElement.classList.remove('dark');
+try {
+  const isDarkMode = getInitialState().darkMode;
+  
+  // Update meta theme-color for mobile browsers
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute('content', isDarkMode ? '#121212' : '#ffffff');
+  }
+  
+  // Apply dark mode class to document for tailwind dark mode
+  if (isDarkMode) {
+    document.documentElement.classList.add('dark');
+    document.documentElement.style.colorScheme = 'dark';
+  } else {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
+  }
+} catch (err) {
+  console.error('Error applying initial dark mode:', err);
 }
 
 export const { 
