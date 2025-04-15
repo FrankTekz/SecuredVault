@@ -15,8 +15,11 @@ const LockScreen = ({ onUnlock, reason }) => {
   const handleUnlock = (e) => {
     e.preventDefault();
     
+    console.log("Form submitted", { isNewPassword: !reason.includes("Enter your master password to access"), password });
+    
     // For demo purposes, any non-empty password will work
     if (password.trim().length > 0) {
+      console.log("Unlocking with password");
       onUnlock(password);
       setPassword("");
       setIsError(false);

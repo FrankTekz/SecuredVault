@@ -38,6 +38,7 @@ import { LOCK_INTERVALS } from "@/slices/userSlice";
 import { useLockInterval } from "@/hooks/use-lock-interval";
 import LockScreen from "@/components/LockScreen";
 import { motion, AnimatePresence } from "framer-motion";
+import CryptoJS from "crypto-js";
 
 const SecuredNotes = () => {
   const { toast } = useToast();
@@ -87,25 +88,39 @@ const SecuredNotes = () => {
       return;
     }
     
+    console.log("Notes handleUnlock called with password:", password);
+    
     if (!masterPasswordHash) {
+      console.log("Setting up master password for the first time");
       // First time setup - set master password
       dispatch(setMasterPassword(password));
+      setMasterPasswordValue(password); // Store for this session
       toast({
         title: "Vault Unlocked",
         description: "Your master password has been set",
       });
       unlockInterval(); // Also unlock the interval lock
     } else {
+      console.log("Unlocking with existing password");
       // Unlock with existing password
-      const result = dispatch(unlockNotes(password));
+      const action = dispatch(unlockNotes(password));
+      console.log("Unlock action:", action);
       
-      if (result.payload?.isLocked === false) {
+      // Compute the hashes to compare
+      const inputHash = CryptoJS.SHA256(password).toString().substring(0, 10) + "...";
+      const storedHash = masterPasswordHash.substring(0, 10) + "...";
+      console.log("Comparing password hashes:", { inputHash, storedHash });
+      
+      if (inputHash === storedHash) {
+        console.log("Notes unlocked successfully");
+        setMasterPasswordValue(password); // Store for this session
         unlockInterval(); // Also unlock the interval lock
         toast({
           title: "Vault Unlocked",
           description: "Your notes are now accessible",
         });
       } else {
+        console.log("Password verification failed");
         toast({
           title: "Error",
           description: "Incorrect master password",

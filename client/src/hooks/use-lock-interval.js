@@ -103,6 +103,13 @@ export function useLockInterval(initialLockState = true) {
     }
   }, [lockInterval]);
   
+  // Force initial lock state for EVERY_USE setting
+  useEffect(() => {
+    if (lockInterval === LOCK_INTERVALS.EVERY_USE && !isLocked) {
+      setIsLocked(true);
+    }
+  }, []);
+  
   // Provide an unlock function to clear the lock state
   const unlock = () => {
     setIsLocked(false);

@@ -4,11 +4,19 @@ import CryptoJS from 'crypto-js';
 const getInitialState = () => {
   try {
     const savedNotes = localStorage.getItem('encryptedNotes');
-    return savedNotes ? JSON.parse(savedNotes) : { 
+    const parsedState = savedNotes ? JSON.parse(savedNotes) : { 
       items: [],
       masterPasswordHash: '',
       isLocked: true
     };
+    
+    // Always ensure we lock if no master password is set
+    // OR force lock if there's a master password (lock behavior is handled by interval)
+    if (!parsedState.masterPasswordHash) {
+      parsedState.isLocked = true;
+    }
+    
+    return parsedState;
   } catch (error) {
     console.error('Failed to load notes from localStorage:', error);
     return { 
