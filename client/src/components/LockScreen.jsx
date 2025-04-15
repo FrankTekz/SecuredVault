@@ -27,43 +27,66 @@ const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
 
   // This function handles the validation of the master password
   const handleUnlock = (e) => {
+    // Prevent default form submission
     e.preventDefault();
+    console.log("Form submitted", { isNewPassword, password });
     
-    if (isNewPassword) {
-      // Validate new password setup
-      if (password.trim().length === 0) {
-        setIsError(true);
-        setErrorMsg("Password cannot be empty");
-        return;
-      }
-      
-      if (password !== confirmPassword) {
-        setIsError(true);
-        setErrorMsg("Passwords do not match");
-        return;
-      }
-      
-      // Passwords match, set the new master password
-      onUnlock(password);
-      setPassword("");
-      setConfirmPassword("");
-      setIsError(false);
-      
-    } else {
-      // Regular unlock with existing password
-      if (password.trim().length > 0) {
+    try {
+      if (isNewPassword) {
+        // Validate new password setup
+        if (password.trim().length === 0) {
+          setIsError(true);
+          setErrorMsg("Password cannot be empty");
+          toast({
+            title: "Password Required",
+            description: "Please enter a master password",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        if (password !== confirmPassword) {
+          setIsError(true);
+          setErrorMsg("Passwords do not match");
+          toast({
+            title: "Passwords Don't Match",
+            description: "Please make sure your passwords match",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Passwords match, set the new master password
+        console.log("Creating new password");
         onUnlock(password);
         setPassword("");
+        setConfirmPassword("");
         setIsError(false);
+        
       } else {
-        setIsError(true);
-        setErrorMsg("Password cannot be empty");
-        toast({
-          title: "Unlock Failed",
-          description: "Please enter your master password",
-          variant: "destructive",
-        });
+        // Regular unlock with existing password
+        if (password.trim().length > 0) {
+          console.log("Unlocking with password");
+          onUnlock(password);
+          setPassword("");
+          setIsError(false);
+        } else {
+          setIsError(true);
+          setErrorMsg("Password cannot be empty");
+          toast({
+            title: "Unlock Failed",
+            description: "Please enter your master password",
+            variant: "destructive",
+          });
+        }
       }
+    } catch (error) {
+      console.error("Error in handleUnlock:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while processing your request",
+        variant: "destructive",
+      });
     }
   };
 
@@ -117,7 +140,11 @@ const LockScreen = ({ onUnlock, reason, isNewPassword = false }) => {
                 )}
               </div>
               
-              <Button type="submit" className="w-full mt-4">
+              <Button 
+                type="submit" 
+                className="w-full mt-4"
+                onClick={handleUnlock} // Add direct click handler for mobile devices
+              >
                 {isNewPassword ? "Create Password" : "Unlock"}
               </Button>
             </form>
