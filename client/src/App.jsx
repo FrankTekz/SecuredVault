@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
@@ -12,6 +12,7 @@ import { useMediaQuery } from "@/hooks/use-mobile";
 
 function App() {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [location] = useLocation();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
@@ -36,23 +37,38 @@ function App() {
       {isMobile && (
         <div className="fixed bottom-0 w-full bg-background border-t border-border z-10">
           <div className="flex justify-around p-3">
-            <a href="/vault" className="flex flex-col items-center text-muted-foreground text-xs">
+            <a 
+              href="/vault" 
+              className={`flex flex-col items-center ${location === '/vault' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
+            >
               <i className="fas fa-vault mb-1 text-lg"></i>
               <span>Vault</span>
             </a>
-            <a href="/dark-web-scan" className="flex flex-col items-center text-muted-foreground text-xs">
+            <a 
+              href="/dark-web-scan" 
+              className={`flex flex-col items-center ${location === '/dark-web-scan' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
+            >
               <i className="fas fa-search mb-1 text-lg"></i>
               <span>Scan</span>
             </a>
-            <a href="/password-generator" className="flex flex-col items-center text-primary text-xs">
+            <a 
+              href="/password-generator" 
+              className={`flex flex-col items-center ${location === '/password-generator' || location === '/' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
+            >
               <i className="fas fa-key mb-1 text-lg"></i>
               <span>Generator</span>
             </a>
-            <a href="/secured-notes" className="flex flex-col items-center text-muted-foreground text-xs">
+            <a 
+              href="/secured-notes" 
+              className={`flex flex-col items-center ${location === '/secured-notes' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
+            >
               <i className="fas fa-sticky-note mb-1 text-lg"></i>
               <span>Notes</span>
             </a>
-            <a href="/settings" className="flex flex-col items-center text-muted-foreground text-xs">
+            <a 
+              href="/settings" 
+              className={`flex flex-col items-center ${location === '/settings' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
+            >
               <i className="fas fa-cog mb-1 text-lg"></i>
               <span>Settings</span>
             </a>
