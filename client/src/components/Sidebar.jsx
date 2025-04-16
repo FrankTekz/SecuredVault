@@ -24,7 +24,12 @@ const Sidebar = () => {
     { path: '/secured-notes', icon: 'fas fa-sticky-note', label: 'Secured Notes' },
   ];
 
-  const isActive = (path) => location === path;
+  const isActive = (path) => {
+    if (path === '/vault') {
+      return location === path || location === '/';
+    }
+    return location === path;
+  };
 
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border h-full bg-background">

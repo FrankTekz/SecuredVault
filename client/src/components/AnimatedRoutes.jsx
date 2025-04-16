@@ -18,7 +18,7 @@ const AnimatedRoutes = () => {
       <div key={location}>
         <PageTransition>
           <Switch>
-            <Route path="/" component={PasswordGenerator} />
+            <Route path="/" component={Vault} />
             <Route path="/vault" component={Vault} />
             <Route path="/dark-web-scan" component={DarkWebScan} />
             <Route path="/password-generator" component={PasswordGenerator} />

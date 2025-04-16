@@ -4,9 +4,8 @@ import store from "./store";
 import App from "./App";
 import "./index.css";
 
-// Clear localStorage completely for a clean start
-localStorage.clear();
-console.log("Main.jsx: localStorage completely cleared");
+// For debugging purposes only, to see when the app initializes
+console.log("Main.jsx: Application initialized");
 
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>

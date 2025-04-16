@@ -43,9 +43,9 @@ function App() {
           <div className="flex justify-around p-3">
             <a 
               href="/vault" 
-              className={`flex flex-col items-center ${location === '/vault' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
+              className={`flex flex-col items-center ${location === '/vault' || location === '/' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className={`fas fa-vault mb-1 text-lg ${location === '/vault' ? 'text-primary' : ''}`}></i>
+              <i className={`fas fa-vault mb-1 text-lg ${location === '/vault' || location === '/' ? 'text-primary' : ''}`}></i>
               <span>Vault</span>
             </a>
             <a 
@@ -57,9 +57,9 @@ function App() {
             </a>
             <a 
               href="/password-generator" 
-              className={`flex flex-col items-center ${location === '/password-generator' || location === '/' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
+              className={`flex flex-col items-center ${location === '/password-generator' ? 'text-primary' : 'text-muted-foreground'} text-xs`}
             >
-              <i className={`fas fa-key mb-1 text-lg ${location === '/password-generator' || location === '/' ? 'text-primary' : ''}`}></i>
+              <i className={`fas fa-key mb-1 text-lg ${location === '/password-generator' ? 'text-primary' : ''}`}></i>
               <span>Generator</span>
             </a>
             <a 
