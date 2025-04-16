@@ -81,17 +81,38 @@ const Settings = () => {
   };
   
   const handleClearData = () => {
-    // Clear all data
+    // Clear all data from Redux store
     dispatch(clearSettings());
     dispatch(clearCredentials());
     dispatch(clearNotes());
+    
+    // Also directly clear localStorage for a completely fresh start
+    localStorage.clear();
+    console.log("Settings: localStorage completely cleared");
     
     setClearDataDialogOpen(false);
     
     toast({
       title: "Data Cleared",
-      description: "All your data has been cleared from the application.",
+      description: "All your data has been cleared from the application. Refresh the page for a fresh start.",
     });
+    
+    // Add a second toast with refresh button
+    setTimeout(() => {
+      toast({
+        title: "Refresh Recommended",
+        description: "For best results after clearing data, refresh the page.",
+        action: (
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => window.location.reload()}
+          >
+            Refresh Now
+          </Button>
+        ),
+      });
+    }, 1000);
   };
   
   const handleLockIntervalChange = (value) => {
