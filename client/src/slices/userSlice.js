@@ -73,7 +73,6 @@ const userSlice = createSlice({
     clearSettings: (state) => {
       state.darkMode = true;
       state.autoLock = true;
-      state.clearClipboard = true;
       state.lockTimeout = AUTO_LOCK_TIMEOUTS.TIMEOUT_5;
       state.lockInterval = LOCK_INTERVALS.EVERY_USE;
       
@@ -88,7 +87,6 @@ const userSlice = createSlice({
 export const { 
   toggleDarkMode, 
   toggleAutoLock, 
-  toggleClearClipboard, 
   setLockTimeout,
   setLockInterval,
   clearSettings
