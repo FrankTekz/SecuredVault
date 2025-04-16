@@ -1,13 +1,8 @@
-import { Switch, Route, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import Vault from "@/pages/Vault";
-import DarkWebScan from "@/pages/DarkWebScan";
-import PasswordGenerator from "@/pages/PasswordGenerator";
-import SecuredNotes from "@/pages/SecuredNotes";
-import Settings from "@/pages/Settings";
-import NotFound from "@/pages/not-found";
+import AnimatedRoutes from "@/components/AnimatedRoutes";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -36,15 +31,10 @@ function App() {
         {isMobile && <Header />}
         
         <div className="container mx-auto p-4 pb-20 md:pb-4">
-          <Switch>
-            <Route path="/" component={PasswordGenerator} />
-            <Route path="/vault" component={Vault} />
-            <Route path="/dark-web-scan" component={DarkWebScan} />
-            <Route path="/password-generator" component={PasswordGenerator} />
-            <Route path="/secured-notes" component={SecuredNotes} />
-            <Route path="/settings" component={Settings} />
-            <Route component={NotFound} />
-          </Switch>
+          {/* We'll create a persistent container to avoid complete remounting */}
+          <div className="page-container relative min-h-[80vh]">
+            <AnimatedRoutes />
+          </div>
         </div>
       </main>
       
