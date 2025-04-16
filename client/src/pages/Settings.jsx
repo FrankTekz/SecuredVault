@@ -23,7 +23,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { 
   toggleDarkMode, 
   toggleAutoLock, 
-  toggleClearClipboard, 
   setLockInterval,
   setLockTimeout,
   clearSettings,
@@ -55,7 +54,7 @@ const SettingsRow = ({ title, description, actionElement }) => (
 const Settings = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
-  const { darkMode, autoLock, clearClipboard, lockInterval, lockTimeout } = useSelector((state) => state.user);
+  const { darkMode, autoLock, lockInterval, lockTimeout } = useSelector((state) => state.user);
   
   const [clearDataDialogOpen, setClearDataDialogOpen] = useState(false);
   
@@ -245,16 +244,7 @@ const Settings = () => {
           }
         />
         
-        <SettingsRow
-          title="Clipboard Clear"
-          description="Clear clipboard after 30 seconds"
-          actionElement={
-            <Switch
-              checked={clearClipboard}
-              onCheckedChange={() => dispatch(toggleClearClipboard())}
-            />
-          }
-        />
+
       </SettingsGroup>
       
       <SettingsGroup title="Application">

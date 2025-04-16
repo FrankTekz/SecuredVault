@@ -24,7 +24,6 @@ const getInitialState = () => {
     return {
       darkMode: savedSettings.darkMode !== undefined ? savedSettings.darkMode : true,
       autoLock: savedSettings.autoLock !== undefined ? savedSettings.autoLock : true,
-      clearClipboard: savedSettings.clearClipboard !== undefined ? savedSettings.clearClipboard : true,
       lockTimeout: savedSettings.lockTimeout || AUTO_LOCK_TIMEOUTS.TIMEOUT_5, // minutes
       lockInterval: savedSettings.lockInterval || LOCK_INTERVALS.EVERY_USE, // default to every use
     };
@@ -33,7 +32,6 @@ const getInitialState = () => {
     return {
       darkMode: true,
       autoLock: true,
-      clearClipboard: true,
       lockTimeout: AUTO_LOCK_TIMEOUTS.TIMEOUT_5,
       lockInterval: LOCK_INTERVALS.EVERY_USE,
     };
@@ -53,13 +51,6 @@ const userSlice = createSlice({
     
     toggleAutoLock: (state) => {
       state.autoLock = !state.autoLock;
-      
-      // Save to localStorage
-      localStorage.setItem('userSettings', JSON.stringify(state));
-    },
-    
-    toggleClearClipboard: (state) => {
-      state.clearClipboard = !state.clearClipboard;
       
       // Save to localStorage
       localStorage.setItem('userSettings', JSON.stringify(state));
