@@ -70,6 +70,7 @@ const SecuredNotes = () => {
   useEffect(() => {
     // If password is set, we need to show the lock screen to enter the password
     // If no password is set, we will show the lock screen to create a password
+    console.log("✅ App loaded and running");
     setShowLockScreen(true);
   }, [hasPasswordSet]);
   
@@ -111,50 +112,35 @@ const SecuredNotes = () => {
       });
       return;
     }
-    
-    console.log("Notes handleUnlock called with password:", password);
-    
-    if (!masterPasswordHash) {
-      console.log("Setting up master password for the first time");
-      // First time setup - set master password
+  
+    if (!hasPasswordSet) {
+      // Initial password setup
       dispatch(setMasterPassword(password));
-      setMasterPasswordValue(password); // Store for this session
-      setShowLockScreen(false); // Hide the lock screen after setting password
-      toast({
-        title: "Vault Unlocked",
-        description: "Your master password has been set",
-      });
-      unlockInterval(); // Also unlock the interval lock
+      setMasterPasswordValue(password);
+      setShowLockScreen(false);
+      unlockInterval();
+      toast({ title: "Vault Unlocked", description: "Your master password has been set" });
+      return;
+    }
+  
+    // Password verification via dispatch
+    dispatch(unlockNotes(password));
+  
+    // Do not compare hash in component, rely on reducer
+    const storedHash = masterPasswordHash.hash;
+    const salt = masterPasswordHash.salt;
+    const inputHash = CryptoJS.SHA256(salt + password).toString();
+  
+    if (inputHash === storedHash) {
+      setMasterPasswordValue(password);
+      setShowLockScreen(false);
+      unlockInterval();
+      toast({ title: "Vault Unlocked", description: "Access granted" });
     } else {
-      console.log("Unlocking with existing password");
-      // Unlock with existing password
-      const action = dispatch(unlockNotes(password));
-      console.log("Unlock action:", action);
-      
-      // Compute the hashes to compare
-      const inputHash = CryptoJS.SHA256(password).toString().substring(0, 10) + "...";
-      const storedHash = masterPasswordHash.substring(0, 10) + "...";
-      console.log("Comparing password hashes:", { inputHash, storedHash });
-      
-      if (inputHash === storedHash) {
-        console.log("Notes unlocked successfully");
-        setMasterPasswordValue(password); // Store for this session
-        setShowLockScreen(false); // Hide the lock screen after successful unlock
-        unlockInterval(); // Also unlock the interval lock
-        toast({
-          title: "Vault Unlocked",
-          description: "Your notes are now accessible",
-        });
-      } else {
-        console.log("Password verification failed");
-        toast({
-          title: "Error",
-          description: "Incorrect master password",
-          variant: "destructive",
-        });
-      }
+      toast({ title: "Error", description: "Incorrect master password", variant: "destructive" });
     }
   };
+  
   
   const handleAddNote = () => {
     setCurrentNote({ id: null, title: "", content: "" });

@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -84,11 +85,10 @@ const Settings = () => {
     dispatch(clearSettings());
     dispatch(clearCredentials());
     dispatch(clearNotes());
-    
+  
     // Also directly clear localStorage for a completely fresh start
     localStorage.clear();
     console.log("Settings: localStorage completely cleared");
-    
     setClearDataDialogOpen(false);
     
     toast({
