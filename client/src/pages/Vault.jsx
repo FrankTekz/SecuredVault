@@ -6,15 +6,22 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { addCredential } from "@/slices/credentialsSlice";
+import { addCredential, unlockCredentials, setMasterPassword, lockCredentials } from "@/slices/credentialsSlice";
 import { setSearchQuery, clearSearchQuery } from "@/slices/searchSlice";
+import { useToast } from "@/hooks/use-toast";
+import LockScreen from "@/components/LockScreen";
+import { decryptField } from "@/slices/credentialsSlice";
+import CryptoJS from 'crypto-js';
 
 const Vault = () => {
+  const { toast } = useToast();
   const credentials = useSelector((state) => state.credentials.items);
+  const { isLocked, hasPasswordSet, masterPasswordHash } = useSelector((state) => state.credentials);
   const globalSearchQuery = useSelector((state) => state.search.query);
   const dispatch = useDispatch();
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [masterPassword, setMasterPasswordValue] = useState("");
   const [newCredential, setNewCredential] = useState({
     title: "",
     username: "",
@@ -22,6 +29,53 @@ const Vault = () => {
     url: "",
     notes: ""
   });
+
+  console.log("Vault Component State:", {
+    isLocked,
+    hasPasswordSet,
+    masterPasswordHash,
+    credentialsLength: credentials.length
+  });
+
+  // Force initial lock state if no password is set
+  useEffect(() => {
+    if (!hasPasswordSet) {
+      console.log("No password set, forcing locked state");
+      dispatch(lockCredentials());
+    }
+  }, [hasPasswordSet, dispatch]);
+
+  const handleUnlock = (password) => {
+    if (!password) {
+      toast({
+        title: "Error",
+        description: "Please enter your master password",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!hasPasswordSet) {
+      // Initial password setup
+      dispatch(setMasterPassword(password));
+      setMasterPasswordValue(password);
+      dispatch(unlockCredentials(password));
+      toast({ title: "Vault Unlocked", description: "Your master password has been set" });
+      return;
+    }
+
+    // Password verification
+    const { hash, salt } = masterPasswordHash;
+    const inputHash = CryptoJS.SHA256(salt + password).toString();
+
+    if (inputHash === hash) {
+      setMasterPasswordValue(password);
+      dispatch(unlockCredentials(password));
+      toast({ title: "Vault Unlocked", description: "Access granted" });
+    } else {
+      toast({ title: "Error", description: "Incorrect master password", variant: "destructive" });
+    }
+  };
 
   // Sync local search query with global search query
   useEffect(() => {
@@ -36,10 +90,12 @@ const Vault = () => {
   };
 
   // Filter credentials based on search query (title or username)
-  const filteredCredentials = credentials.filter(cred => 
-    cred.title?.toLowerCase().includes(localSearchQuery.toLowerCase()) || 
-    cred.username?.toLowerCase().includes(localSearchQuery.toLowerCase())
-  );
+  const filteredCredentials = credentials.filter(cred => {
+    const decryptedTitle = cred.title;
+    const decryptedUsername = decryptField(cred.username, masterPassword, cred.usernameSalt);
+    return decryptedTitle?.toLowerCase().includes(localSearchQuery.toLowerCase()) || 
+           decryptedUsername?.toLowerCase().includes(localSearchQuery.toLowerCase());
+  });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -50,7 +106,7 @@ const Vault = () => {
   };
 
   const handleSubmit = () => {
-    dispatch(addCredential(newCredential));
+    dispatch(addCredential({ ...newCredential, masterPassword }));
     setNewCredential({
       title: "",
       username: "",
@@ -60,6 +116,15 @@ const Vault = () => {
     });
     setIsDialogOpen(false);
   };
+
+  if (isLocked) {
+    return (
+      <LockScreen 
+        onUnlock={handleUnlock} 
+        reason={hasPasswordSet ? "Enter your master password to access your credentials" : "Create a master password to secure your credentials"}
+      />
+    );
+  }
 
   return (
     <motion.div
@@ -79,6 +144,9 @@ const Vault = () => {
           />
           <Button onClick={() => setIsDialogOpen(true)} className="flex-shrink-0">
             <i className="fas fa-plus mr-2"></i> Add
+          </Button>
+          <Button onClick={() => dispatch(lockCredentials())} variant="outline" className="flex-shrink-0">
+            <i className="fas fa-lock mr-2"></i> Lock
           </Button>
         </div>
       </div>
@@ -138,7 +206,7 @@ const Vault = () => {
                   </div>
                   {credential.url && (
                     <CardDescription className="truncate">
-                      <i className="fas fa-globe mr-1"></i> {credential.url}
+                      <i className="fas fa-globe mr-1"></i> {decryptField(credential.url, masterPassword, credential.urlSalt)}
                     </CardDescription>
                   )}
                 </CardHeader>
@@ -147,7 +215,7 @@ const Vault = () => {
                     <div>
                       <div className="text-sm text-muted-foreground mb-1">Username</div>
                       <div className="flex justify-between items-center">
-                        <span className="font-medium truncate">{credential.username}</span>
+                        <span className="font-medium truncate">{decryptField(credential.username, masterPassword, credential.usernameSalt)}</span>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <i className="fas fa-copy text-xs"></i>
                         </Button>
@@ -186,7 +254,7 @@ const Vault = () => {
           <DialogHeader>
             <DialogTitle>Add New Password</DialogTitle>
             <DialogDescription>
-              Add a new password to your secure vault. All data is encrypted locally.
+              Add a new password to your secure vault. All data is encrypted with your master password.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

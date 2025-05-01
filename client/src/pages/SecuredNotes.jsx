@@ -343,13 +343,18 @@ const SecuredNotes = () => {
     });
   };
   
+  const handleLock = () => {
+    dispatch(lockNotes());
+    setShowLockScreen(true);
+  };
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* New lock screen component - shown when either notesLocked or intervalLocked is true */}
+      {/* Lock Screen */}
       {isLocked && (
         <LockScreen 
           onUnlock={handleUnlock}
@@ -357,14 +362,19 @@ const SecuredNotes = () => {
         />
       )}
       
-      {/* Notes Content - only shown when not locked */}
+      {/* Notes Content */}
       {!isLocked && (
         <div>
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h2 className="text-2xl font-bold">Secured Notes</h2>
-            <Button onClick={handleAddNote}>
-              <i className="fas fa-plus mr-2"></i> New Note
-            </Button>
+            <div className="w-full md:w-auto flex items-center gap-2">
+              <Button onClick={() => setAddNoteOpen(true)} className="flex-shrink-0">
+                <i className="fas fa-plus mr-2"></i> Add Note
+              </Button>
+              <Button onClick={handleLock} variant="outline" className="flex-shrink-0">
+                <i className="fas fa-lock mr-2"></i> Lock
+              </Button>
+            </div>
           </div>
           
           <AnimatePresence>
