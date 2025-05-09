@@ -38,10 +38,6 @@ The userSlice manages user authentication, settings, and locking state.
   isLocked: boolean,
   hasPasswordSet: boolean,
   masterPasswordHash: string, 
-  //Need to add hashing logic for master password. Salt must be set wherever the master password is set with CryptoJS.lib.WordArray.random(16).toString();
-  //State AND localStorage will now have an object with "salt" and "mastedPasswordHash". The combined value of both variables in the object will be compared to the entered 
-  // value in the input field. The input field is also hashed + salted. It is salted with the stored "salt".
-  //Hashing is deterministic. When the user inputs their password, it'll get hashed the same as the first time because CryptoJS hashes the same based on input. 
   isInitialized: boolean,
   lastActivity: number,
   autoLockTimeout: string,
