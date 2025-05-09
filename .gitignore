@@ -38,4 +38,19 @@ pnpm-debug.log*
 # Replit specific files
 .replit
 .cache
+.upm
+.config
+.local
+replit.nix
+**/node_modules/.cache/
 vite.config.js.timestamp-*
+generated-icon.png
+
+# Documentation
+docs/
+*_GUIDE.md
+EXPORT_README.md
+MANUAL_DOWNLOAD_GUIDE.md
+GITHUB_INTEGRATION_GUIDE.md
+DEPLOYMENT_GUIDE.md
+GITHUB_AND_DEPLOYMENT_GUIDE.md
