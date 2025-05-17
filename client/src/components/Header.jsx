@@ -61,7 +61,7 @@ const Header = () => {
     <header className="md:hidden flex items-center justify-between p-4 border-b border-border">
       <h1 className="text-xl font-bold text-primary flex items-center">
         <i className="fas fa-shield-alt mr-2"></i>
-        SecureVault
+        SecuredVault
       </h1>
       <div className="flex items-center">
         {showSearch ? (
