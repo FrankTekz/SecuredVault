@@ -37,7 +37,7 @@ const Sidebar = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-primary flex items-center">
             <i className="fas fa-shield-alt mr-2"></i>
-            SecureVault
+            SecuredVault
           </h1>
           <Button 
             variant={isDarkMode ? "default" : "ghost"}
