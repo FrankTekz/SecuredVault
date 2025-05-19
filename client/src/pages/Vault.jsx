@@ -19,6 +19,8 @@ const Vault = () => {
   const { isLocked, hasPasswordSet, masterPasswordHash } = useSelector((state) => state.credentials);
   const globalSearchQuery = useSelector((state) => state.search.query);
   const dispatch = useDispatch();
+  const [isEditing, setIsEditing] = useState(false);
+const [editingId, setEditingId] = useState(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [masterPassword, setMasterPasswordValue] = useState("");
@@ -106,16 +108,26 @@ const Vault = () => {
   };
 
   const handleSubmit = () => {
+  if (isEditing && editingId) {
+    dispatch(updateCredential({
+      id: editingId,
+      ...newCredential,
+      masterPassword,
+    }));
+  } else {
     dispatch(addCredential({ ...newCredential, masterPassword }));
-    setNewCredential({
-      title: "",
-      username: "",
-      password: "",
-      url: "",
-      notes: ""
-    });
-    setIsDialogOpen(false);
-  };
+  }
+  setNewCredential({
+    title: "",
+    username: "",
+    password: "",
+    url: "",
+    notes: ""
+  });
+  setIsDialogOpen(false);
+  setIsEditing(false);
+  setEditingId(null);
+};
 
   if (isLocked) {
     return (
@@ -200,9 +212,9 @@ const Vault = () => {
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <CardTitle className="truncate">{credential.title}</CardTitle>
-                    <div className="text-primary">
+                    {/* <div className="text-primary">
                       <i className="fas fa-lock"></i>
-                    </div>
+                    </div> */}
                   </div>
                   {credential.url && (
                     <CardDescription className="truncate">
@@ -238,9 +250,32 @@ const Vault = () => {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-1 flex justify-end">
-                  <Button variant="ghost" size="sm">
-                    <i className="fas fa-pencil-alt mr-1"></i> Edit
-                  </Button>
+                  <Button
+  variant="ghost"
+  size="icon"
+  className="p-1 h-auto w-auto text-red-500"
+  // onClick={() => dispatch(deleteCredential(credential.id))} //Need to implement deleteCredential action
+>
+  <i className="fas fa-trash-alt"></i>
+</Button>
+                  <Button
+  variant="ghost"
+  size="sm"
+  onClick={() => {
+    setIsEditing(true);
+    setEditingId(credential.id);
+    setNewCredential({
+      title: credential.title,
+      username: decryptField(credential.username, masterPassword, credential.usernameSalt),
+      password: decryptField(credential.password, masterPassword, credential.passwordSalt),
+      url: decryptField(credential.url, masterPassword, credential.urlSalt),
+      notes: decryptField(credential.notes, masterPassword, credential.notesSalt),
+    });
+    setIsDialogOpen(true);
+  }}
+>
+  <i className="fas fa-pencil-alt mr-1"></i> Edit
+</Button>
                 </CardFooter>
               </Card>
             </motion.div>
@@ -249,7 +284,20 @@ const Vault = () => {
       )}
 
       {/* Add Password Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={(open) => {
+  setIsDialogOpen(open);
+  if (!open) {
+    setIsEditing(false);
+    setEditingId(null);
+    setNewCredential({
+      title: "",
+      username: "",
+      password: "",
+      url: "",
+      notes: ""
+    });
+  }
+}}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Password</DialogTitle>

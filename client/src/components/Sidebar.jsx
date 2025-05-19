@@ -34,19 +34,19 @@ const Sidebar = () => {
   return (
     <aside className="hidden md:flex flex-col w-64 border-r border-border h-full bg-background">
       <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center">
           <h1 className="text-xl font-bold text-primary flex items-center">
             <i className="fas fa-shield-alt mr-2"></i>
             SecuredVault
           </h1>
-          <Button 
+          {/* <Button 
             variant={isDarkMode ? "default" : "ghost"}
             size="icon" 
             onClick={() => dispatch(toggleDarkMode())}
             className="p-2 transition-colors"
           >
             <i className="fas fa-moon"></i>
-          </Button>
+          </Button> */}
         </div>
         <div className="mt-4">
           <SearchBar />

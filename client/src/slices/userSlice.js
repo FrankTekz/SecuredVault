@@ -22,10 +22,11 @@ const getInitialState = () => {
     
     // Initialize with saved settings or defaults
     return {
-      darkMode: savedSettings.darkMode !== undefined ? savedSettings.darkMode : true,
-      autoLock: savedSettings.autoLock !== undefined ? savedSettings.autoLock : true,
-      lockTimeout: savedSettings.lockTimeout || AUTO_LOCK_TIMEOUTS.TIMEOUT_5, // minutes
-      lockInterval: savedSettings.lockInterval || LOCK_INTERVALS.EVERY_USE, // default to every use
+      // darkMode: savedSettings.darkMode !== undefined ? savedSettings.darkMode : true,
+      darkMode: true, // Default to dark mode
+      autoLock: savedSettings.autoLock !== undefined ? savedSettings.autoLock : false,
+      lockTimeout: savedSettings.lockTimeout || AUTO_LOCK_TIMEOUTS.TIMEOUT_30, // minutes
+      lockInterval: savedSettings.lockInterval || LOCK_INTERVALS.SESSION_END, // default to every use
     };
   } catch (error) {
     console.error('Failed to load user settings from localStorage:', error);

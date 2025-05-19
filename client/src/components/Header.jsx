@@ -58,7 +58,7 @@ const Header = () => {
   };
   
   return (
-    <header className="md:hidden flex items-center justify-between p-4 border-b border-border">
+    <header className="md:hidden flex items-center justify-center p-4 border-b border-border">
       <h1 className="text-xl font-bold text-primary flex items-center">
         <i className="fas fa-shield-alt mr-2"></i>
         SecuredVault
@@ -127,7 +127,7 @@ const Header = () => {
           </div>
         ) : (
           <>
-            {isVaultPage && (
+            {/* {isVaultPage && (
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -136,15 +136,15 @@ const Header = () => {
               >
                 <i className="fas fa-search"></i>
               </Button>
-            )}
-            <Button 
+            )} */}
+            {/* <Button 
               variant={isDarkMode ? "default" : "ghost"}
               size="icon" 
               onClick={() => dispatch(toggleDarkMode())}
               className="transition-colors"
             >
               <i className="fas fa-moon"></i>
-            </Button>
+            </Button> */}
           </>
         )}
       </div>

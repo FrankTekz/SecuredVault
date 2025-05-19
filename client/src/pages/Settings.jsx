@@ -248,7 +248,7 @@ const Settings = () => {
       </SettingsGroup>
       
       <SettingsGroup title="Application">
-        <SettingsRow
+        {/* <SettingsRow
           title="Dark Mode"
           description="Enable or disable dark mode"
           actionElement={
@@ -260,7 +260,7 @@ const Settings = () => {
               />
             </div>
           }
-        />
+        /> */}
         
         <SettingsRow
           title="Clear Data"

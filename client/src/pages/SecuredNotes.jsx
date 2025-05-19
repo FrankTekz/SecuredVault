@@ -34,6 +34,7 @@ import {
   deleteNote,
   decryptNote,
 } from "@/slices/notesSlice";
+import { setSearchQuery } from "@/slices/searchSlice";
 import { LOCK_INTERVALS } from "@/slices/userSlice";
 import { useLockInterval } from "@/hooks/use-lock-interval";
 import LockScreen from "@/components/LockScreen";
@@ -348,6 +349,28 @@ const SecuredNotes = () => {
     setShowLockScreen(true);
   };
   
+  const globalSearchQuery = useSelector((state) => state.search.query);
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+
+  // Sync local search query with global search query
+  useEffect(() => {
+    setLocalSearchQuery(globalSearchQuery || "");
+  }, [globalSearchQuery]);
+
+  // Update global search when local search changes
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setLocalSearchQuery(value);
+    dispatch(setSearchQuery(value));
+  };
+
+  // Filter notes based on search query (title or content)
+  const filteredNotes = notes.filter(note => {
+    const decryptedContent = decryptNote(note.content, masterPassword);
+    return note.title?.toLowerCase().includes(localSearchQuery.toLowerCase()) || 
+           decryptedContent?.toLowerCase().includes(localSearchQuery.toLowerCase());
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -368,6 +391,13 @@ const SecuredNotes = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h2 className="text-2xl font-bold">Secured Notes</h2>
             <div className="w-full md:w-auto flex items-center gap-2">
+              <Input 
+                type="text" 
+                placeholder="Search notes..." 
+                value={localSearchQuery}
+                onChange={handleSearchChange}
+                className="md:w-64"
+              />
               <Button onClick={() => setAddNoteOpen(true)} className="flex-shrink-0">
                 <i className="fas fa-plus mr-2"></i> Add Note
               </Button>
@@ -385,7 +415,7 @@ const SecuredNotes = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                {notes.map((note) => (
+                {filteredNotes.map((note) => (
                   <motion.div
                     key={note.id}
                     initial={{ opacity: 0, y: 20 }}
