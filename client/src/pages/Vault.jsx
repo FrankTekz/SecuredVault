@@ -5,8 +5,9 @@ import { motion } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { addCredential, unlockCredentials, setMasterPassword, lockCredentials } from "@/slices/credentialsSlice";
+import { addCredential, unlockCredentials, setMasterPassword, lockCredentials, deleteCredential } from "@/slices/credentialsSlice";
 import { setSearchQuery, clearSearchQuery } from "@/slices/searchSlice";
 import { useToast } from "@/hooks/use-toast";
 import LockScreen from "@/components/LockScreen";
@@ -23,6 +24,7 @@ const Vault = () => {
 const [editingId, setEditingId] = useState(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [credentialToDelete, setCredentialToDelete] = useState(null);
   const [masterPassword, setMasterPasswordValue] = useState("");
   const [newCredential, setNewCredential] = useState({
     title: "",
@@ -251,13 +253,34 @@ const [editingId, setEditingId] = useState(null);
                 </CardContent>
                 <CardFooter className="pt-1 flex justify-end">
                   <Button
-  variant="ghost"
-  size="icon"
-  className="p-1 h-auto w-auto text-red-500"
-  // onClick={() => dispatch(deleteCredential(credential.id))} //Need to implement deleteCredential action
->
-  <i className="fas fa-trash-alt"></i>
-</Button>
+    variant="ghost"
+    size="icon"
+    className="p-1 h-auto w-auto text-red-500"
+    onClick={() => {
+      // If no master password set, show password requirement toast
+      if (!hasPasswordSet) {
+        toast({
+          title: "Password Required",
+          description: "Please set a master password to manage encrypted credentials.",
+          action: (
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={() => dispatch(lockCredentials())}
+            >
+              Set Password
+            </Button>
+          ),
+        });
+        return;
+      }
+      
+      // Otherwise show delete confirmation dialog
+      setCredentialToDelete(credential.id);
+    }}
+  >
+    <i className="fas fa-trash-alt"></i>
+  </Button>
                   <Button
   variant="ghost"
   size="sm"
@@ -364,6 +387,35 @@ const [editingId, setEditingId] = useState(null);
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!credentialToDelete} onOpenChange={() => setCredentialToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your
+              secured credential.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                dispatch(deleteCredential(credentialToDelete));
+                setCredentialToDelete(null);
+                toast({
+                  title: "Credential Deleted",
+                  description: "Your credential has been permanently deleted",
+                });
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
