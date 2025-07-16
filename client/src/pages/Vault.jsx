@@ -7,7 +7,8 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { addCredential, unlockCredentials, setMasterPassword, lockCredentials, deleteCredential } from "@/slices/credentialsSlice";
+import { addCredential, updateCredential, deleteCredential } from "@/slices/credentialsSlice";
+import { unlockApp, setMasterPassword, lockApp } from "@/slices/authSlice"; // 🆕 from authSlice
 import { setSearchQuery, clearSearchQuery } from "@/slices/searchSlice";
 import { useToast } from "@/hooks/use-toast";
 import LockScreen from "@/components/LockScreen";
@@ -17,11 +18,16 @@ import CryptoJS from 'crypto-js';
 const Vault = () => {
   const { toast } = useToast();
   const credentials = useSelector((state) => state.credentials.items);
-  const { isLocked, hasPasswordSet, masterPasswordHash } = useSelector((state) => state.credentials);
+
+  // 🆕 From authSlice instead of credentialsSlice
+  const isUnlocked = useSelector((state) => state.auth.isUnlocked);
+  const hasPasswordSet = useSelector((state) => state.auth.hasPasswordSet);
+  const masterPasswordHash = useSelector((state) => state.auth.masterPasswordHash);
+
   const globalSearchQuery = useSelector((state) => state.search.query);
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
-const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [credentialToDelete, setCredentialToDelete] = useState(null);
@@ -35,19 +41,11 @@ const [editingId, setEditingId] = useState(null);
   });
 
   console.log("Vault Component State:", {
-    isLocked,
+    isUnlocked,
     hasPasswordSet,
     masterPasswordHash,
     credentialsLength: credentials.length
   });
-
-  // Force initial lock state if no password is set
-  useEffect(() => {
-    if (!hasPasswordSet) {
-      console.log("No password set, forcing locked state");
-      dispatch(lockCredentials());
-    }
-  }, [hasPasswordSet, dispatch]);
 
   const handleUnlock = (password) => {
     if (!password) {
@@ -63,7 +61,6 @@ const [editingId, setEditingId] = useState(null);
       // Initial password setup
       dispatch(setMasterPassword(password));
       setMasterPasswordValue(password);
-      dispatch(unlockCredentials(password));
       toast({ title: "Vault Unlocked", description: "Your master password has been set" });
       return;
     }
@@ -74,7 +71,7 @@ const [editingId, setEditingId] = useState(null);
 
     if (inputHash === hash) {
       setMasterPasswordValue(password);
-      dispatch(unlockCredentials(password));
+      dispatch(unlockApp(password)); // 🆕 From authSlice
       toast({ title: "Vault Unlocked", description: "Access granted" });
     } else {
       toast({ title: "Error", description: "Incorrect master password", variant: "destructive" });
@@ -110,31 +107,31 @@ const [editingId, setEditingId] = useState(null);
   };
 
   const handleSubmit = () => {
-  if (isEditing && editingId) {
-    dispatch(updateCredential({
-      id: editingId,
-      ...newCredential,
-      masterPassword,
-    }));
-  } else {
-    dispatch(addCredential({ ...newCredential, masterPassword }));
-  }
-  setNewCredential({
-    title: "",
-    username: "",
-    password: "",
-    url: "",
-    notes: ""
-  });
-  setIsDialogOpen(false);
-  setIsEditing(false);
-  setEditingId(null);
-};
+    if (isEditing && editingId) {
+      dispatch(updateCredential({
+        id: editingId,
+        ...newCredential,
+        masterPassword,
+      }));
+    } else {
+      dispatch(addCredential({ ...newCredential, masterPassword }));
+    }
+    setNewCredential({
+      title: "",
+      username: "",
+      password: "",
+      url: "",
+      notes: ""
+    });
+    setIsDialogOpen(false);
+    setIsEditing(false);
+    setEditingId(null);
+  };
 
-  if (isLocked) {
+  // 🆕 Check global auth state
+  if (!isUnlocked) {
     return (
-      <LockScreen 
-        onUnlock={handleUnlock} 
+      <LockScreen  
         reason={hasPasswordSet ? "Enter your master password to access your credentials" : "Create a master password to secure your credentials"}
       />
     );
@@ -159,12 +156,12 @@ const [editingId, setEditingId] = useState(null);
           <Button onClick={() => setIsDialogOpen(true)} className="flex-shrink-0">
             <i className="fas fa-plus mr-2"></i> Add
           </Button>
-          <Button onClick={() => dispatch(lockCredentials())} variant="outline" className="flex-shrink-0">
+          <Button onClick={() => dispatch(lockApp())} variant="outline" className="flex-shrink-0">
             <i className="fas fa-lock mr-2"></i> Lock
           </Button>
         </div>
       </div>
-      
+
       {credentials.length === 0 ? (
         <Card className="p-8 text-center">
           <div className="flex justify-center mb-6">

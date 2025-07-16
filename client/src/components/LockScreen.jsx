@@ -1,58 +1,60 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setMasterPassword, unlockApp } from "@/slices/authSlice"; // 🆕 from authSlice
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-const LockScreen = ({ onUnlock, reason }) => {
+const LockScreen = ({ reason }) => {
+  const dispatch = useDispatch();
+  const { toast } = useToast();
+
+  const hasPasswordSet = useSelector((state) => state.auth.hasPasswordSet);
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { toast } = useToast();
 
-  // Check if this is for creating a new password or unlocking with existing password
-  const isCreatingPassword = reason && reason.toLowerCase().includes("create a master password");
-  
-  console.log("LockScreen render:", { isCreatingPassword, reason });
-  
-  // This function would handle the validation of the master password
-  // In a real app, we would verify it against a securely stored hash
+  const isCreatingPassword = !hasPasswordSet;
+
   const handleUnlock = (e) => {
     e.preventDefault();
-    
-    // Different validation based on creating vs. entering password
+
     if (isCreatingPassword) {
-      // Creating a new password requires validation
+      // Validation for creating password
       if (password.trim().length < 8) {
         setIsError(true);
         setErrorMessage("Password must be at least 8 characters");
         return;
       }
-      
       if (password !== confirmPassword) {
         setIsError(true);
         setErrorMessage("Passwords do not match");
         return;
       }
-      
-      console.log("Setting new master password");
-      onUnlock(password);
+
+      // Dispatch setMasterPassword from authSlice
+      dispatch(setMasterPassword(password));
+      toast({
+        title: "Master Password Set",
+        description: "Your vault is now unlocked",
+      });
       setPassword("");
       setConfirmPassword("");
       setIsError(false);
-      
     } else {
-      // Unlocking with existing password
+      // Validation for unlocking
       if (password.trim().length === 0) {
         setIsError(true);
         setErrorMessage("Password cannot be empty");
         return;
       }
-      
-      console.log("Unlocking with password");
-      onUnlock(password);
+
+      // Dispatch unlockApp from authSlice
+      dispatch(unlockApp(password));
       setPassword("");
       setIsError(false);
     }
@@ -70,10 +72,10 @@ const LockScreen = ({ onUnlock, reason }) => {
           <CardHeader className="text-center">
             <CardTitle className="text-xl font-bold">
               <i className={`fas fa-${isCreatingPassword ? 'key' : 'lock'} text-primary mr-2`}></i>
-              {isCreatingPassword ? "Create Master Password" : "Note Access Required"}
+              {isCreatingPassword ? "Create Master Password" : "Vault Access Required"}
             </CardTitle>
             <CardDescription>
-              {reason || "Enter your master password to access your secure notes"}
+              {reason || "Enter your master password to unlock your vault"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -91,14 +93,13 @@ const LockScreen = ({ onUnlock, reason }) => {
                     className={isError ? "border-red-500" : ""}
                     autoFocus
                   />
-                  
                   {isCreatingPassword && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Password must be at least 8 characters long
                     </p>
                   )}
                 </div>
-                
+
                 {isCreatingPassword && (
                   <div>
                     <Input
@@ -113,13 +114,13 @@ const LockScreen = ({ onUnlock, reason }) => {
                     />
                   </div>
                 )}
-                
+
                 {isError && (
                   <p className="text-red-500 text-xs">
                     {errorMessage}
                   </p>
                 )}
-                
+
                 <Button type="submit" className="w-full">
                   {isCreatingPassword ? "Create Password" : "Unlock"}
                 </Button>
@@ -127,10 +128,9 @@ const LockScreen = ({ onUnlock, reason }) => {
             </form>
           </CardContent>
           <CardFooter className="justify-center text-xs text-muted-foreground">
-            {isCreatingPassword 
-              ? "Your master password will be used to encrypt all your secure notes" 
-              : "Passwords and secure data are encrypted with your master password"
-            }
+            {isCreatingPassword
+              ? "Your master password will be used to encrypt all secure data"
+              : "Passwords and credentials are encrypted with your master password"}
           </CardFooter>
         </Card>
       </motion.div>

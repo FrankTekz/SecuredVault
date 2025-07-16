@@ -7,13 +7,7 @@ const getInitialState = () => {
     const savedNotes = localStorage.getItem('encryptedNotes');
 
     const defaultState = {
-      items: [],
-      masterPasswordHash: {
-        hash: '',
-        salt: ''
-      },
-      isLocked: false,
-      hasPasswordSet: false
+      items: []
     };
 
     if (!savedNotes) {
