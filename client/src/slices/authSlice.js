@@ -1,14 +1,14 @@
-import { createSlice } from '@reduxjs/toolkit';
-import CryptoJS from 'crypto-js';
+import { createSlice } from "@reduxjs/toolkit";
+import CryptoJS from "crypto-js";
 
 const initialState = {
   isUnlocked: false, // Global unlock status
   hasPasswordSet: false,
-  masterPasswordHash: { hash: '', salt: '' },
+  masterPasswordHash: { hash: "", salt: "" },
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setMasterPassword: (state, action) => {
@@ -19,14 +19,18 @@ const authSlice = createSlice({
       state.isUnlocked = true; // Auto-unlock after setting password
     },
     unlockApp: (state, action) => {
-      const { hash, salt } = state.masterPasswordHash;
-      const inputHash = CryptoJS.SHA256(salt + action.payload).toString();
-      if (inputHash === hash) {
-        state.isUnlocked = true;
-      } else {
-        console.error('Invalid master password attempt');
-      }
-    },
+  const { hash, salt } = state.masterPasswordHash;
+  const inputHash = CryptoJS.SHA256(salt + action.payload).toString();
+
+  if (inputHash === hash) {
+    state.isUnlocked = true;
+  } else {
+    // Set a flag for failure in Redux (optional) or handle it in the component
+    state.isUnlocked = false;
+  }
+},
+
+
     lockApp: (state) => {
       state.isUnlocked = false;
     },

@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import {store} from "../store"; // Import store if needed
 import { setMasterPassword, unlockApp } from "@/slices/authSlice"; // 🆕 from authSlice
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,44 +29,35 @@ const LockScreen = ({ reason }) => {
   const isCreatingPassword = !hasPasswordSet;
 
   const handleUnlock = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (isCreatingPassword) {
-      // Validation for creating password
-      if (password.trim().length < 8) {
-        setIsError(true);
-        setErrorMessage("Password must be at least 8 characters");
-        return;
-      }
-      if (password !== confirmPassword) {
-        setIsError(true);
-        setErrorMessage("Passwords do not match");
-        return;
-      }
+  if (password.trim().length === 0) {
+    setIsError(true);
+    setErrorMessage("Password cannot be empty");
+    return;
+  }
 
-      // Dispatch setMasterPassword from authSlice
-      dispatch(setMasterPassword(password));
-      toast({
-        title: "Master Password Set",
-        description: "Your vault is now unlocked",
-      });
-      setPassword("");
-      setConfirmPassword("");
-      setIsError(false);
-    } else {
-      // Validation for unlocking
-      if (password.trim().length === 0) {
-        setIsError(true);
-        setErrorMessage("Password cannot be empty");
-        return;
-      }
+  // Dispatch unlockApp
+  dispatch(unlockApp(password));
 
-      // Dispatch unlockApp from authSlice
-      dispatch(unlockApp(password));
-      setPassword("");
-      setIsError(false);
-    }
-  };
+  // Get the latest state after dispatch
+  const state = store.getState(); // Import store if needed
+  const isUnlocked = state.auth.isUnlocked;
+
+  if (isUnlocked) {
+    setPassword(""); // Clear field on success
+    setIsError(false);
+    toast({
+      title: "Vault Unlocked",
+      description: "Access granted successfully",
+    });
+  } else {
+    setIsError(true);
+    setErrorMessage("Incorrect master password");
+    setPassword(""); // Optional: clear input field
+  }
+};
+
 
   return (
     <AnimatePresence>
@@ -71,8 +70,14 @@ const LockScreen = ({ reason }) => {
         <Card className="w-full max-w-lg mx-auto my-8">
           <CardHeader className="text-center">
             <CardTitle className="text-xl font-bold">
-              <i className={`fas fa-${isCreatingPassword ? 'key' : 'lock'} text-primary mr-2`}></i>
-              {isCreatingPassword ? "Create Master Password" : "Vault Access Required"}
+              <i
+                className={`fas fa-${
+                  isCreatingPassword ? "key" : "lock"
+                } text-primary mr-2`}
+              ></i>
+              {isCreatingPassword
+                ? "Create Master Password"
+                : "Vault Access Required"}
             </CardTitle>
             <CardDescription>
               {reason || "Enter your master password to unlock your vault"}
@@ -84,7 +89,11 @@ const LockScreen = ({ reason }) => {
                 <div>
                   <Input
                     type="password"
-                    placeholder={isCreatingPassword ? "New Master Password" : "Master Password"}
+                    placeholder={
+                      isCreatingPassword
+                        ? "New Master Password"
+                        : "Master Password"
+                    }
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
@@ -110,15 +119,17 @@ const LockScreen = ({ reason }) => {
                         setConfirmPassword(e.target.value);
                         setIsError(false);
                       }}
-                      className={isError && password !== confirmPassword ? "border-red-500" : ""}
+                      className={
+                        isError && password !== confirmPassword
+                          ? "border-red-500"
+                          : ""
+                      }
                     />
                   </div>
                 )}
 
                 {isError && (
-                  <p className="text-red-500 text-xs">
-                    {errorMessage}
-                  </p>
+                  <p className="text-red-500 text-xs">{errorMessage}</p>
                 )}
 
                 <Button type="submit" className="w-full">
