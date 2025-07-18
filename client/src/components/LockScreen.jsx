@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {store} from "../store"; // Import store if needed
+import { store } from "../store"; // Import store if needed
 import { setMasterPassword, unlockApp } from "@/slices/authSlice"; // 🆕 from authSlice
 import {
   Card,
@@ -27,37 +27,46 @@ const LockScreen = ({ reason }) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const isCreatingPassword = !hasPasswordSet;
+  console.log("🔐 hasPasswordSet:", hasPasswordSet);
+  console.log("🔐 isCreatingPassword:", !hasPasswordSet);
 
   const handleUnlock = (e) => {
-  e.preventDefault();
+    e.preventDefault();
+    if (!hasPasswordSet) {
+      console.log("🆕 Setting NEW master password:", password);
+      dispatch(setMasterPassword(password));
+      return;
+    } else {
+      console.log("🔓 Trying to UNLOCK with password:", password);
+      dispatch(unlockApp(password));
+    }
 
-  if (password.trim().length === 0) {
-    setIsError(true);
-    setErrorMessage("Password cannot be empty");
-    return;
-  }
+    if (password.trim().length === 0) {
+      setIsError(true);
+      setErrorMessage("Password cannot be empty");
+      return;
+    }
 
-  // Dispatch unlockApp
-  dispatch(unlockApp(password));
+    // Dispatch unlockApp
+    dispatch(unlockApp(password));
 
-  // Get the latest state after dispatch
-  const state = store.getState(); // Import store if needed
-  const isUnlocked = state.auth.isUnlocked;
+    // Get the latest state after dispatch
+    const state = store.getState(); // Import store if needed
+    const isUnlocked = state.auth.isUnlocked;
 
-  if (isUnlocked) {
-    setPassword(""); // Clear field on success
-    setIsError(false);
-    toast({
-      title: "Vault Unlocked",
-      description: "Access granted successfully",
-    });
-  } else {
-    setIsError(true);
-    setErrorMessage("Incorrect master password");
-    setPassword(""); // Optional: clear input field
-  }
-};
-
+    if (isUnlocked) {
+      setPassword(""); // Clear field on success
+      setIsError(false);
+      toast({
+        title: "Vault Unlocked",
+        description: "Access granted successfully",
+      });
+    } else {
+      setIsError(true);
+      setErrorMessage("Incorrect master password");
+      setPassword(""); // Optional: clear input field
+    }
+  };
 
   return (
     <AnimatePresence>

@@ -18,8 +18,8 @@ import CryptoJS from 'crypto-js';
 const Vault = () => {
   const { toast } = useToast();
   const credentials = useSelector((state) => state.credentials.items);
-
-  // 🆕 From authSlice instead of credentialsSlice
+  // console.log("📦 Current credentials in Redux:", credentials);
+  // console.log("📦 Current credentials in localStorage:", JSON.parse(localStorage.getItem('encryptedCredentials')));
   const isUnlocked = useSelector((state) => state.auth.isUnlocked);
   const hasPasswordSet = useSelector((state) => state.auth.hasPasswordSet);
   const masterPasswordHash = useSelector((state) => state.auth.masterPasswordHash);

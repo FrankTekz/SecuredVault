@@ -1,17 +1,30 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistReducer, persistStore } from 'redux-persist';
-import storage from 'redux-persist/lib/storage'; // defaults to localStorage
-import authReducer from './slices/authSlice';
-import credentialsReducer from './slices/credentialsSlice';
-import notesReducer from './slices/notesSlice';
-import userReducer from './slices/userSlice';
-import searchReducer from './slices/searchSlice';
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
+import { persistReducer, persistStore, createTransform } from "redux-persist";
+import storage from "redux-persist/lib/storage"; // defaults to localStorage
+import authReducer from "./slices/authSlice";
+import credentialsReducer from "./slices/credentialsSlice";
+import notesReducer from "./slices/notesSlice";
+import userReducer from "./slices/userSlice";
+import searchReducer from "./slices/searchSlice";
+
+// 🔥 Transform to exclude isUnlocked from persistence
+const authTransform = createTransform(
+  // Before saving to localStorage
+  (inboundState) => ({
+    ...inboundState,
+    isUnlocked: false, // Never persist isUnlocked
+  }),
+  // When loading from localStorage
+  (outboundState) => outboundState,
+  { whitelist: ["auth"] }
+);
 
 // Configure which slices to persist
 const persistConfig = {
-  key: 'root',
+  key: "root",
   storage,
-  whitelist: ['auth', 'credentials', 'notes'], // Persist these slices only
+  whitelist: ["auth", "credentials", "notes"], // Persist these slices only
+  transforms: [authTransform], // 🆕 Apply authTransform
 };
 
 const rootReducer = combineReducers({

@@ -21,23 +21,28 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useSelector, useDispatch } from "react-redux";
-import { 
-  toggleDarkMode, 
-  toggleAutoLock, 
+import {
+  toggleDarkMode,
+  toggleAutoLock,
   setLockInterval,
   setLockTimeout,
   clearSettings,
   LOCK_INTERVALS,
-  AUTO_LOCK_TIMEOUTS
+  AUTO_LOCK_TIMEOUTS,
 } from "@/slices/userSlice";
 import { clearCredentials } from "@/slices/credentialsSlice";
 import { clearNotes } from "@/slices/notesSlice";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { persistor } from "../store";
+import {resetAuth} from "@/slices/authSlice"; // 🆕 from authSlice
+import ChangeMasterPasswordModal from "@/components/ChangeMasterPasswordModal";
 
 const SettingsGroup = ({ title, children }) => (
   <div className="border border-border rounded-lg p-4 mb-4">
-    <h3 className="text-lg font-semibold mb-3 border-b border-border pb-2">{title}</h3>
+    <h3 className="text-lg font-semibold mb-3 border-b border-border pb-2">
+      {title}
+    </h3>
     {children}
   </div>
 );
@@ -55,56 +60,72 @@ const SettingsRow = ({ title, description, actionElement }) => (
 const Settings = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
-  const { darkMode, autoLock, lockInterval, lockTimeout } = useSelector((state) => state.user);
-  
+  const { darkMode, autoLock, lockInterval, lockTimeout } = useSelector(
+    (state) => state.user
+  );
+  const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
   const [clearDataDialogOpen, setClearDataDialogOpen] = useState(false);
-  
+
   const handleExportPasswords = () => {
     toast({
       title: "Feature Coming Soon",
       description: "Password export will be available in a future update.",
     });
   };
-  
+
   const handleImportPasswords = () => {
     toast({
       title: "Feature Coming Soon",
       description: "Password import will be available in a future update.",
     });
   };
-  
+
   const handleChangeMasterPassword = () => {
-    toast({
-      title: "Feature Coming Soon",
-      description: "Master password change will be available in a future update.",
-    });
+    open = { changePasswordModalOpen };
+    setChangePasswordModalOpen(true);
   };
-  
+
   const handleClearData = () => {
     // Clear all data from Redux store
     dispatch(clearSettings());
     dispatch(clearCredentials());
     dispatch(clearNotes());
-  
+    dispatch(resetAuth());
+
+    // 🧼 Clear redux-persist storage
+    persistor.purge().then(() => {
+      console.log("✅ Redux Persist storage cleared");
+
+      // // 🧼 Clear browser localStorage
+      // localStorage.clear();
+      // console.log("✅ localStorage completely cleared");
+
+      toast({
+        title: "Data Cleared",
+        description: "All your data has been cleared from the application.",
+      });
+    });
+
     // Also directly clear localStorage for a completely fresh start
     localStorage.clear();
     console.log("Settings: localStorage completely cleared");
     setClearDataDialogOpen(false);
-    
+
     toast({
       title: "Data Cleared",
-      description: "All your data has been cleared from the application. Refresh the page for a fresh start.",
+      description:
+        "All your data has been cleared from the application. Refresh the page for a fresh start.",
     });
-    
+
     // Add a second toast with refresh button
     setTimeout(() => {
       toast({
         title: "Refresh Recommended",
         description: "For best results after clearing data, refresh the page.",
         action: (
-          <Button 
-            variant="default" 
-            size="sm" 
+          <Button
+            variant="default"
+            size="sm"
             onClick={() => window.location.reload()}
           >
             Refresh Now
@@ -113,12 +134,12 @@ const Settings = () => {
       });
     }, 1000);
   };
-  
+
   const handleLockIntervalChange = (value) => {
     dispatch(setLockInterval(value));
-    
+
     let message = "";
-    switch(value) {
+    switch (value) {
       case LOCK_INTERVALS.SESSION_END:
         message = "Password will be required when session ends";
         break;
@@ -131,23 +152,23 @@ const Settings = () => {
       default:
         message = "Lock interval updated";
     }
-    
+
     toast({
       title: "Setting Updated",
       description: message,
     });
   };
-  
+
   const handleLockTimeoutChange = (value) => {
     const timeout = parseInt(value, 10);
     dispatch(setLockTimeout(timeout));
-    
+
     toast({
       title: "Setting Updated",
       description: `Auto-lock timeout set to ${timeout} minutes`,
     });
   };
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -155,7 +176,7 @@ const Settings = () => {
       transition={{ duration: 0.3 }}
     >
       <h2 className="text-2xl font-bold mb-6">Settings</h2>
-      
+
       <SettingsGroup title="Backup & Sync">
         <SettingsRow
           title="Export Passwords"
@@ -166,7 +187,7 @@ const Settings = () => {
             </Button>
           }
         />
-        
+
         <SettingsRow
           title="Import Passwords"
           description="Import from CSV, JSON or other password managers"
@@ -177,7 +198,7 @@ const Settings = () => {
           }
         />
       </SettingsGroup>
-      
+
       <SettingsGroup title="Security">
         <SettingsRow
           title="Change Master Password"
@@ -188,27 +209,33 @@ const Settings = () => {
             </Button>
           }
         />
-        
+
         <SettingsRow
           title="Secured Notes Lock Interval"
           description="Choose when to require password re-entry for notes"
           actionElement={
-            <Select 
-              value={lockInterval} 
+            <Select
+              value={lockInterval}
               onValueChange={handleLockIntervalChange}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select interval" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={LOCK_INTERVALS.SESSION_END}>End of Session</SelectItem>
-                <SelectItem value={LOCK_INTERVALS.EVERY_USE}>Every Use</SelectItem>
-                <SelectItem value={LOCK_INTERVALS.TIMEOUT_15}>After 15 Minutes</SelectItem>
+                <SelectItem value={LOCK_INTERVALS.SESSION_END}>
+                  End of Session
+                </SelectItem>
+                <SelectItem value={LOCK_INTERVALS.EVERY_USE}>
+                  Every Use
+                </SelectItem>
+                <SelectItem value={LOCK_INTERVALS.TIMEOUT_15}>
+                  After 15 Minutes
+                </SelectItem>
               </SelectContent>
             </Select>
           }
         />
-        
+
         <SettingsRow
           title="Auto-Lock"
           description="Automatically lock the application after inactivity"
@@ -221,13 +248,13 @@ const Settings = () => {
             </div>
           }
         />
-        
+
         <SettingsRow
           title="Auto-Lock Timeout"
           description="Set how long before auto-lock activates"
           actionElement={
-            <Select 
-              value={lockTimeout.toString()} 
+            <Select
+              value={lockTimeout.toString()}
               onValueChange={handleLockTimeoutChange}
               disabled={!autoLock}
             >
@@ -235,18 +262,24 @@ const Settings = () => {
                 <SelectValue placeholder="Select timeout" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_5.toString()}>5 Minutes</SelectItem>
-                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_15.toString()}>15 Minutes</SelectItem>
-                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_30.toString()}>30 Minutes</SelectItem>
-                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_60.toString()}>1 Hour</SelectItem>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_5.toString()}>
+                  5 Minutes
+                </SelectItem>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_15.toString()}>
+                  15 Minutes
+                </SelectItem>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_30.toString()}>
+                  30 Minutes
+                </SelectItem>
+                <SelectItem value={AUTO_LOCK_TIMEOUTS.TIMEOUT_60.toString()}>
+                  1 Hour
+                </SelectItem>
               </SelectContent>
             </Select>
           }
         />
-        
-
       </SettingsGroup>
-      
+
       <SettingsGroup title="Application">
         {/* <SettingsRow
           title="Dark Mode"
@@ -261,13 +294,13 @@ const Settings = () => {
             </div>
           }
         /> */}
-        
+
         <SettingsRow
           title="Clear Data"
           description="Remove all data and reset application"
           actionElement={
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => setClearDataDialogOpen(true)}
             >
               Clear
@@ -275,20 +308,27 @@ const Settings = () => {
           }
         />
       </SettingsGroup>
-      
+      <ChangeMasterPasswordModal
+        open={changePasswordModalOpen}
+        onClose={() => setChangePasswordModalOpen(false)}
+      />
+
       {/* Clear Data Confirmation Dialog */}
-      <AlertDialog open={clearDataDialogOpen} onOpenChange={setClearDataDialogOpen}>
+      <AlertDialog
+        open={clearDataDialogOpen}
+        onOpenChange={setClearDataDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete all your
-              passwords, notes, and reset all settings to default values.
+              This action cannot be undone. This will permanently delete all
+              your passwords, notes, and reset all settings to default values.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={handleClearData}
             >

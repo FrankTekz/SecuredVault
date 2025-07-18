@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import CryptoJS from 'crypto-js';
 
+
+
 const getInitialState = () => {
   try {
     const savedCredentials = localStorage.getItem('encryptedCredentials');
@@ -91,6 +93,18 @@ const credentialsSlice = createSlice({
       state.items = [];
       localStorage.removeItem('encryptedCredentials');
     },
+    updateAllCredentials: (state, action) => {
+  console.log("🔄 Updating all credentials in Redux:", action.payload);
+
+  state.items = action.payload.credentials;
+
+  // Save updated credentials to localStorage
+  localStorage.setItem(
+    "encryptedCredentials",
+    JSON.stringify({ ...state, items: action.payload })
+  );
+},
+
   },
 });
 
@@ -110,7 +124,8 @@ export const {
   addCredential, 
   updateCredential, 
   deleteCredential, 
-  clearCredentials
+  clearCredentials,
+  updateAllCredentials
 } = credentialsSlice.actions;
 
 export default credentialsSlice.reducer;
