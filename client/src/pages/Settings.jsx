@@ -236,7 +236,7 @@ const Settings = () => {
           }
         /> */}
 
-        <SettingsRow
+        {/* <SettingsRow
           title="Auto-Lock"
           description="Automatically lock the application after inactivity"
           actionElement={
@@ -277,7 +277,7 @@ const Settings = () => {
               </SelectContent>
             </Select>
           }
-        />
+        /> */}
       </SettingsGroup>
 
       <SettingsGroup title="Application">
