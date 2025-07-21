@@ -210,7 +210,7 @@ const Settings = () => {
           }
         />
 
-        <SettingsRow
+        {/* <SettingsRow
           title="Secured Notes Lock Interval"
           description="Choose when to require password re-entry for notes"
           actionElement={
@@ -234,7 +234,7 @@ const Settings = () => {
               </SelectContent>
             </Select>
           }
-        />
+        /> */}
 
         <SettingsRow
           title="Auto-Lock"
