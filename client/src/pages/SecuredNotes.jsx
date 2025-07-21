@@ -26,29 +26,32 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useSelector, useDispatch } from "react-redux";
 import {
-  setMasterPassword,
-  unlockNotes,
-  lockNotes,
   addNote,
   updateNote,
   deleteNote,
-  decryptNote,
 } from "@/slices/notesSlice";
+import { unlockNotes, setMasterPassword, lockNotes } from "@/slices/authSlice";
 import { setSearchQuery } from "@/slices/searchSlice";
 import { LOCK_INTERVALS } from "@/slices/userSlice";
 import { useLockInterval } from "@/hooks/use-lock-interval";
 import LockScreen from "@/components/LockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import CryptoJS from "crypto-js";
+import { lockApp, unlockApp } from "../slices/authSlice";
 
 const SecuredNotes = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
   const {
     items: notes,
-    isLocked: notesLocked,
-    masterPasswordHash,
   } = useSelector((state) => state.notes);
+  const {
+  masterPasswordHash,
+  isUnlocked: authUnlocked,
+  hasPasswordSet,
+} = useSelector((state) => state.auth);
+   const isLocked = !authUnlocked;
+
   const { lockInterval } = useSelector((state) => state.user);
 
   // Use our custom lock interval hook
@@ -66,7 +69,7 @@ const SecuredNotes = () => {
   });
 
   // Get the hasPasswordSet state from Redux
-  const hasPasswordSet = useSelector((state) => state.notes.hasPasswordSet);
+  // const hasPasswordSet = useSelector((state) => state.notes.hasPasswordSet);
 
   console.log("SecuredNotes rendering with Redux state:", {
     hasPasswordSet,
@@ -87,7 +90,7 @@ const SecuredNotes = () => {
   // Determine if we should lock based on the local state and hasPasswordSet flag
   // If no password is set, we should show a different lock screen (for password creation)
   // Otherwise, show the regular lock screen for password entry
-  const isLocked = showLockScreen;
+  // const isLocked = showLockScreen;
 
   // Handle different lock messages based on the lock interval setting
   const getLockReason = () => {
@@ -114,49 +117,45 @@ const SecuredNotes = () => {
   };
 
   const handleUnlock = (password = masterPassword) => {
-    if (!password) {
-      toast({
-        title: "Error",
-        description: "Please enter your master password",
-        variant: "destructive",
-      });
-      return;
-    }
+  if (!password) {
+    toast({
+      title: "Error",
+      description: "Please enter your master password",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    if (!hasPasswordSet) {
-      // Initial password setup
-      dispatch(setMasterPassword(password));
-      setMasterPasswordValue(password);
-      setShowLockScreen(false);
-      unlockInterval();
-      toast({
-        title: "Vault Unlocked",
-        description: "Your master password has been set",
-      });
-      return;
-    }
+  if (!hasPasswordSet) {
+    // Initial password setup
+    dispatch(setMasterPassword(password));
+    setMasterPasswordValue(password);
+    toast({
+      title: "Vault Unlocked",
+      description: "Your master password has been set",
+    });
+    return;
+  }
 
-    // Password verification via dispatch
-    dispatch(unlockNotes(password));
+  dispatch(unlockApp(password));
 
-    // Do not compare hash in component, rely on reducer
-    const storedHash = masterPasswordHash.hash;
-    const salt = masterPasswordHash.salt;
-    const inputHash = CryptoJS.SHA256(salt + password).toString();
+  // Get latest auth state
+  const state = store.getState();
+  if (state.auth.isUnlocked) {
+    setMasterPasswordValue(password);
+    toast({
+      title: "Vault Unlocked",
+      description: "Access granted",
+    });
+  } else {
+    toast({
+      title: "Error",
+      description: "Incorrect master password",
+      variant: "destructive",
+    });
+  }
+};
 
-    if (inputHash === storedHash) {
-      setMasterPasswordValue(password);
-      setShowLockScreen(false);
-      unlockInterval();
-      toast({ title: "Vault Unlocked", description: "Access granted" });
-    } else {
-      toast({
-        title: "Error",
-        description: "Incorrect master password",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleAddNote = () => {
     setCurrentNote({ id: null, title: "", content: "" });
@@ -366,7 +365,7 @@ const SecuredNotes = () => {
   };
 
   const handleLock = () => {
-    dispatch(lockNotes());
+    dispatch(lockApp());
     setShowLockScreen(true);
   };
 
