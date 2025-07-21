@@ -52,10 +52,33 @@ const notesSlice = createSlice({
     clearNotes: (state) => {
       state.items = [];
     },
+    updateAllNotes: (state, action) => {
+  const { oldPassword, newPassword } = action.payload;
+
+  state.items = state.items.map((note) => {
+    // Decrypt content with old password
+    const decryptedContent = CryptoJS.AES.decrypt(
+      note.content,
+      oldPassword
+    ).toString(CryptoJS.enc.Utf8);
+
+    // Re-encrypt with new password
+    const encryptedContent = CryptoJS.AES.encrypt(
+      decryptedContent,
+      newPassword
+    ).toString();
+
+    return {
+      ...note,
+      content: encryptedContent,
+    };
+  });
+},
+
   },
 });
 
-export const { addNote, updateNote, deleteNote, clearNotes } =
+export const { addNote, updateNote, deleteNote, clearNotes, updateAllNotes } =
   notesSlice.actions;
 
 export const decryptNote = (encryptedContent, masterPassword) => {
