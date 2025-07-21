@@ -9,15 +9,11 @@ import searchReducer from "./slices/searchSlice";
 
 // 🔥 Transform to exclude isUnlocked from persistence
 const authTransform = createTransform(
-  // Before saving to localStorage
-  (inboundState) => ({
-    ...inboundState,
-    isUnlocked: false, // Never persist isUnlocked
-  }),
-  // When loading from localStorage
+  (inboundState) => inboundState, // Do not forcibly reset isUnlocked
   (outboundState) => outboundState,
   { whitelist: ["auth"] }
 );
+
 
 // Configure which slices to persist
 const persistConfig = {

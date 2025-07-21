@@ -44,11 +44,24 @@ const SecuredNotes = () => {
   const dispatch = useDispatch();
   const { items: notes } = useSelector((state) => state.notes);
   const {
-    masterPasswordHash,
-    isUnlocked: authUnlocked,
-    hasPasswordSet,
-  } = useSelector((state) => state.auth);
-  const isLocked = !authUnlocked;
+  masterPasswordHash,
+  isUnlocked: authUnlocked,
+  hasPasswordSet,
+} = useSelector((state) => state.auth);
+
+// NEW: Local state to prevent re-mount lock flicker
+const [localUnlocked, setLocalUnlocked] = useState(authUnlocked);
+
+// Sync local state with global state
+useEffect(() => {
+  if (authUnlocked || localUnlocked) {
+    setLocalUnlocked(true);
+  }
+}, [authUnlocked]);
+
+
+const isLocked = !localUnlocked;
+
 
   const { lockInterval } = useSelector((state) => state.user);
 
@@ -132,6 +145,7 @@ const SecuredNotes = () => {
     const state = store.getState();
     if (state.auth.isUnlocked) {
       setMasterPasswordValue(password);
+      setLocalUnlocked(true); // Update local state to prevent flicker
       toast({
         title: "Vault Unlocked",
         description: "Access granted",
@@ -353,9 +367,11 @@ const SecuredNotes = () => {
   };
 
   const handleLock = () => {
-    dispatch(lockApp());
-    setShowLockScreen(true);
-  };
+  dispatch(lockApp());
+  setLocalUnlocked(false); // ✅ Immediately lock locally
+};
+
+
 
   const globalSearchQuery = useSelector((state) => state.search.query);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
