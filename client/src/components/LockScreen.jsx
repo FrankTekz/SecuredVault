@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 
-const LockScreen = ({ reason }) => {
+const LockScreen = ({ reason, onUnlockSuccess }) => {
   const dispatch = useDispatch();
   const { toast } = useToast();
 
@@ -61,6 +61,7 @@ const LockScreen = ({ reason }) => {
         title: "Vault Unlocked",
         description: "Access granted successfully",
       });
+      if (onUnlockSuccess) onUnlockSuccess()
     } else {
       setIsError(true);
       setErrorMessage("Incorrect master password");

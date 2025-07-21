@@ -7,7 +7,7 @@ const initialState = {
 
 const notesSlice = createSlice({
   name: "notes",
-  initialState: getInitialState(),
+  initialState,
   reducers: {
     addNote: (state, action) => {
       const { title, content, masterPassword } = action.payload;

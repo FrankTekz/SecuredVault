@@ -29,7 +29,7 @@ import {
   addNote,
   updateNote,
   deleteNote,
-  decryptNote
+  decryptNote,
 } from "@/slices/notesSlice";
 import { unlockApp, setMasterPassword, lockApp } from "@/slices/authSlice";
 import { setSearchQuery } from "@/slices/searchSlice";
@@ -38,20 +38,17 @@ import { useLockInterval } from "@/hooks/use-lock-interval";
 import LockScreen from "@/components/LockScreen";
 import { motion, AnimatePresence } from "framer-motion";
 import CryptoJS from "crypto-js";
-import { lockApp, unlockApp } from "../slices/authSlice";
 
 const SecuredNotes = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
+  const { items: notes } = useSelector((state) => state.notes);
   const {
-    items: notes,
-  } = useSelector((state) => state.notes);
-  const {
-  masterPasswordHash,
-  isUnlocked: authUnlocked,
-  hasPasswordSet,
-} = useSelector((state) => state.auth);
-   const isLocked = !authUnlocked;
+    masterPasswordHash,
+    isUnlocked: authUnlocked,
+    hasPasswordSet,
+  } = useSelector((state) => state.auth);
+  const isLocked = !authUnlocked;
 
   const { lockInterval } = useSelector((state) => state.user);
 
@@ -78,15 +75,6 @@ const SecuredNotes = () => {
   });
 
   // Add local state to track whether we should show the lock screen
-  const [showLockScreen, setShowLockScreen] = useState(true);
-
-  // Reset the lock screen state when the hasPasswordSet flag changes
-  useEffect(() => {
-    // If password is set, we need to show the lock screen to enter the password
-    // If no password is set, we will show the lock screen to create a password
-    console.log("✅ App loaded and running");
-    setShowLockScreen(true);
-  }, [hasPasswordSet]);
 
   // Determine if we should lock based on the local state and hasPasswordSet flag
   // If no password is set, we should show a different lock screen (for password creation)
@@ -101,7 +89,7 @@ const SecuredNotes = () => {
     }
 
     // Otherwise, show regular locking messages
-    if (notesLocked) {
+    if (isLocked) {
       return "Enter your master password to access your secured notes";
     }
 
@@ -118,45 +106,44 @@ const SecuredNotes = () => {
   };
 
   const handleUnlock = (password = masterPassword) => {
-  if (!password) {
-    toast({
-      title: "Error",
-      description: "Please enter your master password",
-      variant: "destructive",
-    });
-    return;
-  }
+    if (!password) {
+      toast({
+        title: "Error",
+        description: "Please enter your master password",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  if (!hasPasswordSet) {
-    // Initial password setup
-    dispatch(setMasterPassword(password));
-    setMasterPasswordValue(password);
-    toast({
-      title: "Vault Unlocked",
-      description: "Your master password has been set",
-    });
-    return;
-  }
+    if (!hasPasswordSet) {
+      // Initial password setup
+      dispatch(setMasterPassword(password));
+      setMasterPasswordValue(password);
+      toast({
+        title: "Vault Unlocked",
+        description: "Your master password has been set",
+      });
+      return;
+    }
 
-  dispatch(unlockApp(password));
+    dispatch(unlockApp(password));
 
-  // Get latest auth state
-  const state = store.getState();
-  if (state.auth.isUnlocked) {
-    setMasterPasswordValue(password);
-    toast({
-      title: "Vault Unlocked",
-      description: "Access granted",
-    });
-  } else {
-    toast({
-      title: "Error",
-      description: "Incorrect master password",
-      variant: "destructive",
-    });
-  }
-};
-
+    // Get latest auth state
+    const state = store.getState();
+    if (state.auth.isUnlocked) {
+      setMasterPasswordValue(password);
+      toast({
+        title: "Vault Unlocked",
+        description: "Access granted",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Incorrect master password",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleAddNote = () => {
     setCurrentNote({ id: null, title: "", content: "" });
@@ -402,7 +389,16 @@ const SecuredNotes = () => {
     >
       {/* Lock Screen */}
       {isLocked && (
-        <LockScreen onUnlock={handleUnlock} reason={getLockReason()} />
+        <LockScreen
+          onUnlock={handleUnlock}
+          reason={getLockReason()}
+          onUnlockSuccess={() => {
+            toast({
+              title: "Notes Unlocked",
+              description: "You can now access your secured notes",
+            });
+          }}
+        />
       )}
 
       {/* Notes Content */}
