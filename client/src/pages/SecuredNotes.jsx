@@ -44,29 +44,38 @@ import CryptoJS from "crypto-js";
 const SecuredNotes = () => {
   const { toast } = useToast();
   const dispatch = useDispatch();
-  const { items: notes, isLocked: notesLocked, masterPasswordHash } = useSelector((state) => state.notes);
-  const { lockInterval } = useSelector(state => state.user);
-  
+  const {
+    items: notes,
+    isLocked: notesLocked,
+    masterPasswordHash,
+  } = useSelector((state) => state.notes);
+  const { lockInterval } = useSelector((state) => state.user);
+
   // Use our custom lock interval hook
-  const { isLocked: intervalLocked, unlock: unlockInterval } = useLockInterval(false);
-  
+  const { isLocked: intervalLocked, unlock: unlockInterval } =
+    useLockInterval(false);
+
   const [masterPassword, setMasterPasswordValue] = useState("");
   const [addNoteOpen, setAddNoteOpen] = useState(false);
   const [editNoteOpen, setEditNoteOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
-  const [currentNote, setCurrentNote] = useState({ id: null, title: "", content: "" });
-  
-  // Get the hasPasswordSet state from Redux
-  const hasPasswordSet = useSelector(state => state.notes.hasPasswordSet);
-  
-  console.log("SecuredNotes rendering with Redux state:", { 
-    hasPasswordSet, 
-    masterPasswordHash 
+  const [currentNote, setCurrentNote] = useState({
+    id: null,
+    title: "",
+    content: "",
   });
-  
+
+  // Get the hasPasswordSet state from Redux
+  const hasPasswordSet = useSelector((state) => state.notes.hasPasswordSet);
+
+  console.log("SecuredNotes rendering with Redux state:", {
+    hasPasswordSet,
+    masterPasswordHash,
+  });
+
   // Add local state to track whether we should show the lock screen
   const [showLockScreen, setShowLockScreen] = useState(true);
-  
+
   // Reset the lock screen state when the hasPasswordSet flag changes
   useEffect(() => {
     // If password is set, we need to show the lock screen to enter the password
@@ -74,25 +83,25 @@ const SecuredNotes = () => {
     console.log("✅ App loaded and running");
     setShowLockScreen(true);
   }, [hasPasswordSet]);
-  
+
   // Determine if we should lock based on the local state and hasPasswordSet flag
   // If no password is set, we should show a different lock screen (for password creation)
   // Otherwise, show the regular lock screen for password entry
   const isLocked = showLockScreen;
-  
+
   // Handle different lock messages based on the lock interval setting
   const getLockReason = () => {
     // If no password has been set yet, show message to create one
     if (!hasPasswordSet) {
       return "Create a master password to secure your notes";
     }
-    
+
     // Otherwise, show regular locking messages
     if (notesLocked) {
       return "Enter your master password to access your secured notes";
     }
-    
-    switch(lockInterval) {
+
+    switch (lockInterval) {
       case LOCK_INTERVALS.SESSION_END:
         return "Your session ended. Please enter your master password again.";
       case LOCK_INTERVALS.EVERY_USE:
@@ -103,7 +112,7 @@ const SecuredNotes = () => {
         return "Enter your master password to continue.";
     }
   };
-  
+
   const handleUnlock = (password = masterPassword) => {
     if (!password) {
       toast({
@@ -113,41 +122,47 @@ const SecuredNotes = () => {
       });
       return;
     }
-  
+
     if (!hasPasswordSet) {
       // Initial password setup
       dispatch(setMasterPassword(password));
       setMasterPasswordValue(password);
       setShowLockScreen(false);
       unlockInterval();
-      toast({ title: "Vault Unlocked", description: "Your master password has been set" });
+      toast({
+        title: "Vault Unlocked",
+        description: "Your master password has been set",
+      });
       return;
     }
-  
+
     // Password verification via dispatch
     dispatch(unlockNotes(password));
-  
+
     // Do not compare hash in component, rely on reducer
     const storedHash = masterPasswordHash.hash;
     const salt = masterPasswordHash.salt;
     const inputHash = CryptoJS.SHA256(salt + password).toString();
-  
+
     if (inputHash === storedHash) {
       setMasterPasswordValue(password);
       setShowLockScreen(false);
       unlockInterval();
       toast({ title: "Vault Unlocked", description: "Access granted" });
     } else {
-      toast({ title: "Error", description: "Incorrect master password", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Incorrect master password",
+        variant: "destructive",
+      });
     }
   };
-  
-  
+
   const handleAddNote = () => {
     setCurrentNote({ id: null, title: "", content: "" });
     setAddNoteOpen(true);
   };
-  
+
   const handleEditNote = (note) => {
     // If no master password is set, we need to prompt the user to set one first
     if (!hasPasswordSet) {
@@ -155,9 +170,9 @@ const SecuredNotes = () => {
         title: "Password Required",
         description: "Please set a master password to edit encrypted notes.",
         action: (
-          <Button 
-            variant="default" 
-            size="sm" 
+          <Button
+            variant="default"
+            size="sm"
             onClick={() => {
               // Show the password setting dialog
               dispatch({ type: "notes/lockNotes" });
@@ -169,20 +184,20 @@ const SecuredNotes = () => {
       });
       return;
     }
-    
+
     // Decrypt the note content
     const decryptedContent = decryptNote(note.content, masterPassword);
-    
+
     // Set the current note with decrypted content for editing
     setCurrentNote({
       id: note.id,
       title: note.title,
-      content: decryptedContent
+      content: decryptedContent,
     });
-    
+
     setEditNoteOpen(true);
   };
-  
+
   const handleSaveNote = () => {
     if (!currentNote.title || !currentNote.content) {
       toast({
@@ -192,21 +207,21 @@ const SecuredNotes = () => {
       });
       return;
     }
-    
+
     // If no master password is set, we need to prompt the user to set one first
     if (!hasPasswordSet) {
       // First we'll close the current dialog
       setAddNoteOpen(false);
       setEditNoteOpen(false);
-      
+
       // Show a custom toast prompting to set a password
       toast({
         title: "Password Required",
         description: "Please set a master password to encrypt your notes.",
         action: (
-          <Button 
-            variant="default" 
-            size="sm" 
+          <Button
+            variant="default"
+            size="sm"
             onClick={() => {
               // Show the password setting dialog (reusing the lock screen)
               dispatch({ type: "notes/lockNotes" });
@@ -218,41 +233,45 @@ const SecuredNotes = () => {
       });
       return;
     }
-    
+
     // For new notes
     if (!currentNote.id) {
-      dispatch(addNote({
-        title: currentNote.title,
-        content: currentNote.content,
-        masterPassword
-      }));
-      
+      dispatch(
+        addNote({
+          title: currentNote.title,
+          content: currentNote.content,
+          masterPassword,
+        })
+      );
+
       toast({
         title: "Note Saved",
         description: "Your note has been encrypted and saved",
       });
-    } 
+    }
     // For editing existing notes
     else {
-      dispatch(updateNote({
-        id: currentNote.id,
-        title: currentNote.title,
-        content: currentNote.content,
-        masterPassword
-      }));
-      
+      dispatch(
+        updateNote({
+          id: currentNote.id,
+          title: currentNote.title,
+          content: currentNote.content,
+          masterPassword,
+        })
+      );
+
       toast({
         title: "Note Updated",
         description: "Your note has been updated and encrypted",
       });
     }
-    
+
     // Reset form and close dialogs
     setCurrentNote({ id: null, title: "", content: "" });
     setAddNoteOpen(false);
     setEditNoteOpen(false);
   };
-  
+
   const handleDeleteNote = (id) => {
     // If no master password is set, we need to prompt the user to set one first
     if (!hasPasswordSet) {
@@ -261,9 +280,9 @@ const SecuredNotes = () => {
         title: "Password Required",
         description: "Please set a master password to manage encrypted notes.",
         action: (
-          <Button 
-            variant="default" 
-            size="sm" 
+          <Button
+            variant="default"
+            size="sm"
             onClick={() => {
               // Show the password setting dialog
               dispatch({ type: "notes/lockNotes" });
@@ -275,16 +294,16 @@ const SecuredNotes = () => {
       });
       return;
     }
-    
+
     dispatch(deleteNote(id));
     setNoteToDelete(null);
-    
+
     toast({
       title: "Note Deleted",
       description: "Your note has been permanently deleted",
     });
   };
-  
+
   const handleExportNotes = () => {
     // Check if master password exists
     if (!hasPasswordSet) {
@@ -292,9 +311,9 @@ const SecuredNotes = () => {
         title: "Password Required",
         description: "Please set a master password to export encrypted notes.",
         action: (
-          <Button 
-            variant="default" 
-            size="sm" 
+          <Button
+            variant="default"
+            size="sm"
             onClick={() => {
               // Show the password setting dialog
               dispatch({ type: "notes/lockNotes" });
@@ -306,18 +325,20 @@ const SecuredNotes = () => {
       });
       return;
     }
-    
+
     // Create a simple PDF-like export (text format)
     let exportContent = "SECURED NOTES EXPORT\n\n";
-    
+
     notes.forEach((note) => {
       const decryptedContent = decryptNote(note.content, masterPassword);
       exportContent += `Title: ${note.title}\n`;
-      exportContent += `Date: ${new Date(note.createdAt).toLocaleDateString()}\n`;
+      exportContent += `Date: ${new Date(
+        note.createdAt
+      ).toLocaleDateString()}\n`;
       exportContent += `Content: ${decryptedContent}\n\n`;
       exportContent += "------------------------\n\n";
     });
-    
+
     // Create a blob and download
     const blob = new Blob([exportContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -328,13 +349,13 @@ const SecuredNotes = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: "Notes Exported",
       description: "Your notes have been exported as a text file",
     });
   };
-  
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString(undefined, {
@@ -343,12 +364,12 @@ const SecuredNotes = () => {
       day: "numeric",
     });
   };
-  
+
   const handleLock = () => {
     dispatch(lockNotes());
     setShowLockScreen(true);
   };
-  
+
   const globalSearchQuery = useSelector((state) => state.search.query);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
 
@@ -365,10 +386,12 @@ const SecuredNotes = () => {
   };
 
   // Filter notes based on search query (title or content)
-  const filteredNotes = notes.filter(note => {
+  const filteredNotes = notes.filter((note) => {
     const decryptedContent = decryptNote(note.content, masterPassword);
-    return note.title?.toLowerCase().includes(localSearchQuery.toLowerCase()) || 
-           decryptedContent?.toLowerCase().includes(localSearchQuery.toLowerCase());
+    return (
+      note.title?.toLowerCase().includes(localSearchQuery.toLowerCase()) ||
+      decryptedContent?.toLowerCase().includes(localSearchQuery.toLowerCase())
+    );
   });
 
   return (
@@ -379,37 +402,41 @@ const SecuredNotes = () => {
     >
       {/* Lock Screen */}
       {isLocked && (
-        <LockScreen 
-          onUnlock={handleUnlock}
-          reason={getLockReason()}
-        />
+        <LockScreen onUnlock={handleUnlock} reason={getLockReason()} />
       )}
-      
+
       {/* Notes Content */}
       {!isLocked && (
         <div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h2 className="text-2xl font-bold">Secured Notes</h2>
             <div className="w-full md:w-auto flex items-center gap-2">
-              <Input 
-                type="text" 
-                placeholder="Search notes..." 
+              <Input
+                type="text"
+                placeholder="Search notes..."
                 value={localSearchQuery}
                 onChange={handleSearchChange}
                 className="md:w-64"
               />
-              <Button onClick={() => setAddNoteOpen(true)} className="flex-shrink-0">
+              <Button
+                onClick={() => setAddNoteOpen(true)}
+                className="flex-shrink-0"
+              >
                 <i className="fas fa-plus mr-2"></i> Add Note
               </Button>
-              <Button onClick={handleLock} variant="outline" className="flex-shrink-0">
+              <Button
+                onClick={handleLock}
+                variant="outline"
+                className="flex-shrink-0"
+              >
                 <i className="fas fa-lock mr-2"></i> Lock
               </Button>
             </div>
           </div>
-          
+
           <AnimatePresence>
             {notes.length > 0 ? (
-              <motion.div 
+              <motion.div
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -426,18 +453,20 @@ const SecuredNotes = () => {
                     <Card className="hover:border-primary transition-colors">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-semibold text-lg">{note.title}</h3>
+                          <h3 className="font-semibold text-lg">
+                            {note.title}
+                          </h3>
                           <div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="p-1 h-auto w-auto"
                               onClick={() => handleEditNote(note)}
                             >
                               <i className="fas fa-pencil-alt"></i>
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               className="p-1 h-auto w-auto text-red-500"
                               onClick={() => setNoteToDelete(note.id)}
@@ -447,11 +476,18 @@ const SecuredNotes = () => {
                           </div>
                         </div>
                         <p className="text-muted-foreground text-sm mb-3">
-                          Last updated: {formatDate(note.updatedAt || note.createdAt)}
+                          Last updated:{" "}
+                          {formatDate(note.updatedAt || note.createdAt)}
                         </p>
                         <p className="text-sm">
-                          {decryptNote(note.content, masterPassword).substring(0, 100)}
-                          {decryptNote(note.content, masterPassword).length > 100 ? '...' : ''}
+                          {decryptNote(note.content, masterPassword).substring(
+                            0,
+                            100
+                          )}
+                          {decryptNote(note.content, masterPassword).length >
+                          100
+                            ? "..."
+                            : ""}
                         </p>
                       </CardContent>
                     </Card>
@@ -471,19 +507,21 @@ const SecuredNotes = () => {
                     </motion.div>
                     <h3 className="text-xl font-semibold mb-2">No Notes Yet</h3>
                     <p className="text-muted-foreground mb-4">
-                      Add your first secure note by clicking the "New Note" button
+                      Add your first secure note by clicking the "New Note"
+                      button
                     </p>
-                    
+
                     {!hasPasswordSet && (
                       <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-md mb-4 text-sm">
                         <p className="text-blue-600 dark:text-blue-400 font-medium">
                           <i className="fas fa-info-circle mr-2"></i>
-                          You'll need to set a master password when creating your first note.
-                          This password will be used to encrypt all your secure notes.
+                          You'll need to set a master password when creating
+                          your first note. This password will be used to encrypt
+                          all your secure notes.
                         </p>
                       </div>
                     )}
-                    
+
                     <Button onClick={handleAddNote}>
                       <i className="fas fa-plus mr-2"></i> Add Your First Note
                     </Button>
@@ -492,18 +530,19 @@ const SecuredNotes = () => {
               </Card>
             )}
           </AnimatePresence>
-          
+
           {notes.length > 0 && (
             <div className="mt-6 flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                <span>{notes.length}</span> notes stored • All notes are encrypted
+                <span>{notes.length}</span> notes stored • All notes are
+                encrypted
               </p>
               <Button variant="secondary" onClick={handleExportNotes}>
                 <i className="fas fa-file-export mr-1"></i> Export Notes
               </Button>
             </div>
           )}
-          
+
           {/* Add Note Dialog */}
           <Dialog open={addNoteOpen} onOpenChange={setAddNoteOpen}>
             <DialogContent>
@@ -520,7 +559,9 @@ const SecuredNotes = () => {
                     id="noteTitle"
                     placeholder="Note Title"
                     value={currentNote.title}
-                    onChange={(e) => setCurrentNote({ ...currentNote, title: e.target.value })}
+                    onChange={(e) =>
+                      setCurrentNote({ ...currentNote, title: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -530,7 +571,12 @@ const SecuredNotes = () => {
                     placeholder="Enter your secured note content..."
                     rows={6}
                     value={currentNote.content}
-                    onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
+                    onChange={(e) =>
+                      setCurrentNote({
+                        ...currentNote,
+                        content: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -542,7 +588,7 @@ const SecuredNotes = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          
+
           {/* Edit Note Dialog */}
           <Dialog open={editNoteOpen} onOpenChange={setEditNoteOpen}>
             <DialogContent>
@@ -559,7 +605,9 @@ const SecuredNotes = () => {
                     id="editNoteTitle"
                     placeholder="Note Title"
                     value={currentNote.title}
-                    onChange={(e) => setCurrentNote({ ...currentNote, title: e.target.value })}
+                    onChange={(e) =>
+                      setCurrentNote({ ...currentNote, title: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -569,7 +617,12 @@ const SecuredNotes = () => {
                     placeholder="Enter your secured note content..."
                     rows={6}
                     value={currentNote.content}
-                    onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
+                    onChange={(e) =>
+                      setCurrentNote({
+                        ...currentNote,
+                        content: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -581,20 +634,23 @@ const SecuredNotes = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          
+
           {/* Delete Confirmation Dialog */}
-          <AlertDialog open={!!noteToDelete} onOpenChange={() => setNoteToDelete(null)}>
+          <AlertDialog
+            open={!!noteToDelete}
+            onOpenChange={() => setNoteToDelete(null)}
+          >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete your
-                  secured note.
+                  This action cannot be undone. This will permanently delete
+                  your secured note.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction 
+                <AlertDialogAction
                   className="bg-red-600 hover:bg-red-700"
                   onClick={() => handleDeleteNote(noteToDelete)}
                 >
