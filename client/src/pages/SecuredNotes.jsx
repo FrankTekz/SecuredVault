@@ -29,8 +29,9 @@ import {
   addNote,
   updateNote,
   deleteNote,
+  decryptNote
 } from "@/slices/notesSlice";
-import { unlockNotes, setMasterPassword, lockNotes } from "@/slices/authSlice";
+import { unlockApp, setMasterPassword, lockApp } from "@/slices/authSlice";
 import { setSearchQuery } from "@/slices/searchSlice";
 import { LOCK_INTERVALS } from "@/slices/userSlice";
 import { useLockInterval } from "@/hooks/use-lock-interval";
